@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Contact us{% endblock title %}
+
+{% block content %}
+<section class="login-section">
+<div class="container">
+    <div class="login-form">
+        <h3>Contact us</h3>
+        <form action="{% url 'main:contact' %}" method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button class="btn" type="submit">Submit</button>
+        </form>
+    </div>
+</div>
+</section>
+{% endblock content %}

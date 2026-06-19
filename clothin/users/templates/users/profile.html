@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Profile{% endblock title %}
+
+{% block content %}
+    <section class="login-section">
+        <div class="container">
+            <div class="login-form">
+                <h3>Profile info</h3>
+                <form action="{% url 'users:profile' %}" method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <a href="{% url 'users:password_change' %}">Change your password</a>
+                    <div class="form-buttons">
+                        <button type="submit" class='btn'>Save changes</button>
+                        <button type="reset" class="btn">Discard</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+{% endblock content %}

@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  {{product.name}}
+{% endblock %}
+
+{% block content %}
+  <section class="product-detail">
+    <div class="detail-image">
+      <img src="{{ product.image.url }}" alt="{{ product.image.name }}" />
+    </div>
+    <div class="detail-info">
+      <div class="detail-text">
+        <h3>
+          {{ product.name }}
+          <br>
+          {% if product.discount > 0 %}
+            <span class="price">${{ product.get_price }}</span><span class="actual-price">${{ product.price }}</span>
+          {% else %}
+            <span class="price">${{ product.get_price }}</span>
+          {% endif %}
+          <br>
+          <span class="category-txt"><a href="#!">{{ product.category.name }}</a></span>
+        </h3>
+        <p>{{ product.description }}</p>
+        <form action="{% url 'wishlist:wishlist_add' product.id %}" method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn like">ADD TO WISHLIST</button>
+        </form>
+        <form action="{% url "cart:cart_update" product.id %}" method="post">
+          {% csrf_token %}
+          <p>Quantity: {{ cart_product_form.quantity }}</p>
+          {{ cart_product_form.override }}  {# hidden #}
+          <button type="submit" class="btn">ADD TO CART</button>
+        </form>
+      </div>
+    </div>
+  </section>
+{% endblock %}

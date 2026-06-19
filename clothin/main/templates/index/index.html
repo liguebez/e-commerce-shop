@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load cache %}
+
+{% block title %}
+  Home
+{% endblock %}
+
+{% block content %}
+{% cache 60 index %}
+  <section class="welcome">
+    <div class="container">
+      <div class="welcome-info">
+        <div class="welcome-text">
+          <div class="welcome-title">
+            <h1>Welcome to the future</h1>
+            <p>Welcome to our world of fashion.</p>
+          </div>
+          <div class="welcome-link">
+            <a class="btn" href="{% url 'main:product_list' %}">Go to shop</a>
+          </div>
+        </div>
+        <img src="{% static 'img/header-1.png' %}" alt="" />
+        <img src="{% static 'img/header-2.png' %}" alt="" />
+      </div>
+    </div>
+  </section>
+
+  <section class="product">
+    <h2 class="product-category">New Releases</h2>
+    <button class="pre-btn"><img src="{% static 'img/arrow.png' %}" alt="" /></button>
+    <button class="nxt-btn"><img src="{% static 'img/arrow.png' %}" alt="" /></button>
+    <div class="product-slider">
+      {% for product in products %}
+        <div class="product-card">
+          <div class="product-image">
+            {% if product.discount > 0 %}
+              <span class="discount-tag">{{ product.discount }}% off</span>
+            {% endif %}
+            <a href="{{ product.get_absolute_url }}"><img src="{{ product.image.url }}" class="product-thumb" alt="" /></a>
+            <a class="card-btn" href="{{ product.get_absolute_url }}">view</a>
+          </div>
+          <div class="product-info">
+            <h3 class="product-brand">{{ product.name }}</h3>
+            <p class="product-short-description">{{ product.category }}</p>
+            {% if product.discount > 0 %}
+              <span class="price">${{ product.get_price }}</span><span class="actual-price">${{ product.price }}</span>
+            {% else %}
+              <span class="price">${{ product.get_price }}</span>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="about">
+    <div class="container">
+      <div class="about-info">
+        <div class="about-text">
+          <h2>OUR APPROACH TO FASHION DESIGN</h2>
+          <p>
+            at elegant vogue, we blend creativity with craftsmanship to create<br />
+            fashion that transcends trends and stands the test of time each<br />
+            design is meticulously crafted, ensuring the highest quality<br />
+            exquisite finish
+          </p>
+        </div>
+      </div>
+      <div class="about-images">
+        <img src="{% static 'img/approach-1.png' %}" alt="" />
+        <img class="lower-img" src="{% static 'img/approach-2.png' %}" alt="" />
+        <img src="{% static 'img/approach-3.png' %}" alt="" />
+        <img class="lower-img" src="{% static 'img/approach-1.png' %}" alt="" />
+      </div>
+    </div>
+  </section>
+{% endcache %}
+{% endblock %}

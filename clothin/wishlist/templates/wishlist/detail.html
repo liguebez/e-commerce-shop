@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  Wishlist
+{% endblock %}
+
+{% block content %}
+  <section class="products">
+    <div class="container">
+      <div class="products-info">
+        <div class="categories-list">
+          <h3>Your wishlist</h3>
+        </div>
+        <div class="products-list">
+          <div class="product-container">
+            {% for product in wishlist %}
+              <div class="product-card">
+                  <div class="product-image">
+                    {% if product.discount > 0 %}
+                      <span class="discount-tag">{{ product.discount }}% off</span>
+                    {% endif %}
+                    <img src="{{ product.image.url }}" class="product-thumb" alt="" />
+                    <a class="card-btn" href="{{ product.get_absolute_url }}">view</a>
+                  </div>
+                  <div class="product-info">
+                    <h4 class="product-brand">{{ product.name }}</h4>
+                    <p class="product-short-description">{{ product.category }}</p>
+                    {% if product.discount > 0 %}
+                      <span class="price">${{ product.get_price }}</span><span class="actual-price">${{ product.price }}</span>
+                    {% else %}
+                      <span class="price">${{ product.get_price }}</span>
+                    {% endif %}
+                  </div>
+              </div>
+              <div class="product-card-right">
+                  <form action="{% url 'wishlist:wishlist_remove' product.id %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-icon"><img src="{% static 'img/close.png' %}" alt="" /></button>
+                  </form>
+                </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}

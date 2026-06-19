@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  {% if product_category is None %}
+    All products
+  {% else %}
+    {{ product_category }}
+  {% endif %} 
+{% endblock %}
+
+{% block content %}
+  <section class="products">
+    <div class="container">
+      <div class="products-info">
+        <div class="categories-list">
+          <h3>Categories</h3>
+          <ul>
+            <li>
+              <a href="{% url 'main:product_list' %}">All categories</a>
+            </li>
+            {% for category in categories %}
+              <li>
+                <a href="{{ category.get_absolute_url }}">{{ category.name }}</a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="products-list">
+          <h3>
+            {% if product_category is None %}
+              ALL PRODUCTS
+            {% else %}
+              {{ product_category }}
+            {% endif %}
+          </h3>
+          <div class="product-container">
+            {% for product in current_page %}
+              <div class="product-card">
+                <div class="product-image">
+                  {% if product.discount > 0 %}
+                    <span class="discount-tag">{{ product.discount }}% off</span>
+                  {% endif %}
+                  <img src="{{ product.image.url }}" class="product-thumb" alt="" />
+                  <a class="card-btn" href="{{ product.get_absolute_url }}">view</a>
+                </div>
+                <div class="product-info">
+                  <h4 class="product-brand">{{ product.name }}</h4>
+                  <p class="product-short-description">{{ product.category }}</p>
+                  {% if product.discount > 0 %}
+                    <span class="price">${{ product.get_price }}</span><span class="actual-price">${{ product.price }}</span>
+                  {% else %}
+                    <span class="price">${{ product.get_price }}</span>
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+          {% if current_page.has_other_pages %}
+            <nav class="nav-page">
+                <ul class="page-list">
+                  {% if current_page.has_previous %}
+                    <li>
+                      <a class="nav-arrow" href="?page={{ current_page.previous_page_number }}">&lt;</a>
+                    </li>
+                  {% endif %}
+                  {% for p in current_page.paginator.page_range %}
+                    {% if current_page.number == p %}
+                      <li>{{ p }}</li>
+                    {% else %}
+                      {% if p >= current_page.number|add:-2 and p <= current_page.number|add:2 %}
+                        <li>
+                          <a href="?page={{ p }}">{{ p }}</a>
+                        </li>
+                      {% endif %}
+                    {% endif %}
+                  {% endfor %}
+                  {% if current_page.has_next %}
+                    <li>
+                      <a class="nav-arrow" href="?page={{ current_page.next_page_number }}">&gt;</a>
+                    </li>
+                  {% endif %}
+                </ul>
+            </nav>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}

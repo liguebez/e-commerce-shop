@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Payment successful{% endblock title %}
+
+{% block content %}
+    <section class="payment-cancelled">
+        <div class="container">
+            <div class="empty">
+                <h2>Your payment has been successful</h2>
+                <p><a href="{% url 'main:index' %}" class="btn" style="display: inline-block;">Go to the main page</a></p>
+        </div>
+        </div>
+    </section>
+{% endblock content %}

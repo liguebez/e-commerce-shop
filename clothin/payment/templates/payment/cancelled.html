@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Payment cancelled{% endblock title %}
+
+{% block content %}
+    <section class="payment-cancelled">
+        <div class="container">
+            <div class="empty">
+                <h2>Your cart is empty</h2>
+                <p><a href="{% url 'main:product_list' %}" class="btn" style="display: inline-block;">Continue shopping</a></p>
+        </div>
+        </div>
+    </section>
+{% endblock content %}

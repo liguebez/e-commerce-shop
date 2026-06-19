@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Registration{% endblock title %}
+
+{% block content %}
+<section class="login-section">
+<div class="container">
+    <div class="login-form">
+        <h3 style="text-transform: capitalize;">Registration is successfully completed</h3>
+        <a href="{% url "users:login" %}">Click here to login</a>
+    </div>
+</div>
+</section>
+{% endblock content %}
