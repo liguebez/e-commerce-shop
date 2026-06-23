@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}My Orders{% endblock %}
+
+{% block content %}
+<section>
+  <div class="container">
+    <h1>My Orders</h1>
+    {% if orders %}
+    <div class="orders-list">
+      {% for order in orders %}
+      <div class="order-card">
+        <div class="order-card-header">
+          <h3>Order #{{ order.id }}</h3>
+          <span class="order-date">{{ order.created|date:"d M Y" }}</span>
+          <span class="order-status {% if order.paid %}status-paid{% else %}status-unpaid{% endif %}">
+            {% if order.paid %}Paid{% else %}Unpaid{% endif %}
+          </span>
+        </div>
+        <ul class="order-items">
+          {% for item in order.items.all %}
+          <li>
+            {% if item.product.image %}
+            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="order-item-img">
+            {% endif %}
+            <span class="order-item-name">{{ item.product.name }}</span>
+            <span class="order-item-qty">× {{ item.quantity }}</span>
+            <span class="price">${{ item.get_cost }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+        <div class="order-card-footer">
+          <span class="price">Total: ${{ order.get_total_cost }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">
+      <h2>No orders yet</h2>
+      <p><a href="{% url 'main:product_list' %}" class="btn" style="display: inline-block;">Start shopping</a></p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

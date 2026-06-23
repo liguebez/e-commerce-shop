@@ -3,6 +3,7 @@ from django.urls import reverse
 from .models import Order, OrderItem
 from .forms import OrderCreateForm
 from cart.models import CartItem
+from django.contrib.auth.decorators import login_required
 
 def order_create(request):
     cart = CartItem.objects.select_related('product').filter(user=request.user)
@@ -22,3 +23,9 @@ def order_create(request):
     else:
         form = OrderCreateForm(request=request)
         return render(request, 'order/create.html', {'cart': cart, 'form': form})
+
+@login_required
+def order_list(request):
+    orders = Order.objects.filter(user=request.user).prefetch_related('items__product')
+    return render(request, 'order/list.html', {'orders': orders})
+

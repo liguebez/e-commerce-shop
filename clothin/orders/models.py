@@ -3,6 +3,7 @@ from main.models import Product
 from django.contrib.auth import get_user_model
 
 
+
 class Order(models.Model):
     user = models.ForeignKey(to=get_user_model(), on_delete=models.SET_DEFAULT,
                              blank=True, null=True, default=None)

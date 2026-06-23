@@ -722,6 +722,93 @@ footer .container {
   border: 1px solid #000000a2;
 }
 
+/* Orders list page */
+
+.orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 40px;
+  max-width: 800px;
+}
+
+.order-card {
+  border: 1px solid #d9d9d9;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.order-card-header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.order-date {
+  font-size: 14px;
+  font-weight: 300;
+  opacity: 0.6;
+}
+
+.order-status {
+  font-size: 12px;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+.status-paid {
+  background-color: black;
+  color: white;
+}
+
+.status-unpaid {
+  border: 1px solid black;
+}
+
+.order-items {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid #d9d9d9;
+  padding-top: 16px;
+}
+
+.order-items li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.order-item-img {
+  width: 56px;
+  height: 64px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.order-item-name {
+  flex: 1;
+  text-transform: capitalize;
+}
+
+.order-item-qty {
+  opacity: 0.5;
+  font-size: 13px;
+}
+
+.order-card-footer {
+  border-top: 1px solid #d9d9d9;
+  padding-top: 16px;
+  text-align: right;
+}
+
 /* ===== Responsive ===== */
 
 /* Desktop: order navbar children so logo stays centered */
@@ -827,6 +914,10 @@ footer .container {
   .about-images { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
   .about-images img { width: calc(50% - 5px); margin-right: 0; }
   .lower-img { margin-top: 0; }
+
+  /* Orders list */
+  .order-card-header { flex-wrap: wrap; gap: 10px; }
+  .orders-list { max-width: 100%; }
 }
 
 /* Small mobile — 480px and below */

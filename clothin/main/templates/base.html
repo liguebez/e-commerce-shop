@@ -48,6 +48,7 @@
                 </a>
               </li>
               {% if user.is_authenticated %}
+              <li><a class="nav-button-profile" href="{% url 'orders:order_list' %}">My Orders</a></li>
               <li><a class="nav-button-profile" href="{% url 'users:profile' %}"><img src="{% static 'img/profile.png' %}" alt="">{{ request.user.username }}</a></li>
               <li>
                 <a class="nav-button-profile" href="{% url 'users:logout' %}">
