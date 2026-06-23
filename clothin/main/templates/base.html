@@ -13,12 +13,15 @@
   <body>
     <header class="header">
       <div class="container">
-        <navbar class="navbar">
-          <div class="nav">
+        <navbar class="navbar" id="main-navbar">
+          <div class="logo">
+            <a href="/"><img src="{% static 'img/logo.png' %}" alt=""></a>
+          </div>
+          <button class="hamburger-btn" id="hamburger-btn" aria-label="Toggle menu">
+            <img src="{% static 'img/menu.png' %}" alt="" />
+          </button>
+          <div class="nav nav-left">
             <ul>
-              <li>
-                <a href="#!"><img src="{% static 'img/menu.png' %}" alt="" /></a>
-              </li>
               <li>
                 <a class="nav-link" href="/">Home</a>
               </li>
@@ -30,10 +33,7 @@
               </li>
             </ul>
           </div>
-          <div class="logo">
-            <a href="/"><img class="logo" src="{% static 'img/logo.png' %}" alt=""></a>
-          </div>
-          <div class="nav">
+          <div class="nav nav-right">
             <ul>
               <li>
                 <a class="nav-button-wl" href="{% url "wishlist:wishlist_detail" %}">
@@ -54,12 +54,13 @@
                     Logout
                 </a>
               </li>
-                {% else %}
-                  <a class="nav-button-profile" href="{% url 'users:login' %}">
-                    Login
-                  </a>
+              {% else %}
+              <li>
+                <a class="nav-button-profile" href="{% url 'users:login' %}">
+                  Login
+                </a>
+              </li>
               {% endif %}
-
             </ul>
           </div>
         </navbar>
