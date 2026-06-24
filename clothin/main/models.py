@@ -28,6 +28,7 @@ class Product(models.Model):
     description = models.TextField(blank=True, null=True)
     available = models.BooleanField(default=True)
     date_create = models.DateTimeField(auto_now_add=True)
+    stock = models.PositiveIntegerField(default=0)
 
     class Meta:
         ordering = ['name']

@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from main.models import Product
 from .forms import CartAddProductForm, CartUpdateForm
 from .models import CartItem
@@ -12,7 +13,7 @@ from decimal import Decimal
 @require_POST
 def cart_add(request, product_id):
     product = get_object_or_404(Product, id=product_id, available=True)
-    item, _ = CartItem.objects.get_or_create(user=request.user, product=product)
+    item, created = CartItem.objects.get_or_create(user=request.user, product=product)
     form = CartAddProductForm(request.POST)
 
     if form.is_valid():
@@ -26,6 +27,9 @@ def cart_add(request, product_id):
         if item.quantity <= 0:
             item.delete()
         else:
+            if item.quantity > product.stock:
+                messages.error(request, f'Only {product.stock} units available.')
+                return redirect('cart:cart_detail')
             item.save()
 
     return redirect(request.META.get('HTTP_REFERER', '/'))
@@ -39,7 +43,10 @@ def cart_update(request, product_id):
 
     if form.is_valid():
         cd = form.cleaned_data
-        item.quantity += cd['quantity']
+        item.quantity = cd['quantity']
+        if item.quantity > product.stock:
+                messages.error(request, f'Only {product.stock} units available.')
+                return redirect('cart:cart_detail')
         item.save()
 
     return redirect('cart:cart_detail')

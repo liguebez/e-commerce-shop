@@ -30,9 +30,13 @@
         </form>
         <form action="{% url "cart:cart_update" product.id %}" method="post">
           {% csrf_token %}
+          {% if not product.stock %}
+          <span class="badge out-of-stock">OUT OF STOCK</span>
+          {% else %}
           <p>Quantity: {{ cart_product_form.quantity }}</p>
           {{ cart_product_form.override }}  {# hidden #}
           <button type="submit" class="btn">ADD TO CART</button>
+          {% endif %}
         </form>
       </div>
     </div>

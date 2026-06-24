@@ -8,6 +8,7 @@
     <title>
       {% block title %}{% endblock %}
     </title>
+    <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}" />
     <link rel="stylesheet" href="{% static 'css/base.css' %}" />
   </head>
   <body>
@@ -68,6 +69,17 @@
         </navbar>
       </div>
     </header>
+
+    {% if messages %}
+    <div class="messages-banner">
+      {% for message in messages %}
+        <div class="message-banner message-banner-{{ message.tags }}">
+          <span>{{ message }}</span>
+          <button class="message-close" onclick="this.parentElement.remove()">&#x2715;</button>
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
 
     {% block content %}
     {% endblock content %}

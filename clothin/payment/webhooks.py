@@ -6,7 +6,8 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from orders.models import Order
 from main.models import Product
-
+from django.db.models import F
+from orders.models import OrderItem
 
 @csrf_exempt
 def stripe_webhook(request):
@@ -34,7 +35,32 @@ def stripe_webhook(request):
             order.paid = True
             order.stripe_id = session.payment_intent
             order.save()
+
+            for item in order.items.select_related('product'):
+                updated = (
+                    Product.objects.filter(id=item.product_id,
+                                           stock__gte=item.quantity).update(stock=F('stock') - item.quantity
+                                            )
+                )
+
+                # if updated:
+                #     product = Product.objects.get(id=item.product_id)
+                #     if product.stock <= 0:
+                #         product.available = False
+                #         product.save(update_fields=['available'])
+
             subject = f'Order #{order.id} confirmed'
             body = render_to_string('order/email_confirmation.txt', {'order': order})
             send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [order.email])
+
+    elif event.type == 'checkout.session.expired':
+        session = event.data.object
+        try:
+            order = Order.objects.get(id=session.client_reference_id)
+        except Order.DoesNotExist:
+            return HttpResponse(status=200)
+
+        if not order.paid:
+            order.delete()
+
     return HttpResponse(status=200)
