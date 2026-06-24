@@ -5,6 +5,7 @@ from .forms import OrderCreateForm
 from cart.models import CartItem
 from django.contrib.auth.decorators import login_required
 
+
 def order_create(request):
     cart = CartItem.objects.select_related('product').filter(user=request.user)
     if request.method == "POST":

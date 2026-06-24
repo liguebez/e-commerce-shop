@@ -27,8 +27,15 @@
           </ul>
         </div>
         <div class="products-list">
+          <form class="search-bar" method="get" action="{% url 'main:product_list' %}">
+            <input type="search" name="q" value="{{ query }}" placeholder="Search products...">
+            <button type="submit">Search</button>
+          </form>
           <h3>
-            {% if product_category is None %}
+            {% if query %}
+              Results for "{{ query }}"
+              <span class="search-count">({{ products.paginator.count }} found)</span>
+            {% elif product_category is None %}
               ALL PRODUCTS
             {% else %}
               {{ product_category }}

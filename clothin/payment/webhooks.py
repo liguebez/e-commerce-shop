@@ -2,6 +2,8 @@ import stripe
 from django.conf import settings
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
 from orders.models import Order
 from main.models import Product
 
@@ -21,7 +23,7 @@ def stripe_webhook(request):
         return HttpResponse(status=400)
     except stripe.error.SignatureVerificationError as e:
         return HttpResponse(status=400)
-    
+
     if event.type == 'checkout.session.completed':
         session = event.data.object
         if session.mode == 'payment' and session.payment_status == 'paid':
@@ -32,4 +34,7 @@ def stripe_webhook(request):
             order.paid = True
             order.stripe_id = session.payment_intent
             order.save()
+            subject = f'Order #{order.id} confirmed'
+            body = render_to_string('order/email_confirmation.txt', {'order': order})
+            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [order.email])
     return HttpResponse(status=200)
