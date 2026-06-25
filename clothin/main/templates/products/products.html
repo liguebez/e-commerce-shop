@@ -27,10 +27,21 @@
           </ul>
         </div>
         <div class="products-list">
-          <form class="search-bar" method="get" action="{% url 'main:product_list' %}">
-            <input type="search" name="q" value="{{ query }}" placeholder="Search products...">
-            <button type="submit">Search</button>
-          </form>
+          <div class="products-toolbar">
+            <form class="search-bar" method="get" action="{% url 'main:product_list' %}">
+              <input type="hidden" name="sort" value="{{ current_sort }}">
+              <input type="search" name="q" value="{{ query }}" placeholder="Search products...">
+              <button type="submit">Search</button>
+            </form>
+            <form class="sort-form" method="get">
+              {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
+              <select name="sort" onchange="this.form.submit()">
+                <option value="newest"    {% if current_sort == 'newest'    %}selected{% endif %}>Newest</option>
+                <option value="price_asc" {% if current_sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+                <option value="price_desc"{% if current_sort == 'price_desc'%}selected{% endif %}>Price: High to Low</option>
+              </select>
+            </form>
+          </div>
           <h3>
             {% if query %}
               Results for "{{ query }}"
@@ -68,7 +79,7 @@
                 <ul class="page-list">
                   {% if current_page.has_previous %}
                     <li>
-                      <a class="nav-arrow" href="?page={{ current_page.previous_page_number }}">&lt;</a>
+                      <a class="nav-arrow" href="?page={{ current_page.previous_page_number }}&sort={{ current_sort }}{% if query %}&q={{ query }}{% endif %}">&lt;</a>
                     </li>
                   {% endif %}
                   {% for p in current_page.paginator.page_range %}
@@ -77,14 +88,14 @@
                     {% else %}
                       {% if p >= current_page.number|add:-2 and p <= current_page.number|add:2 %}
                         <li>
-                          <a href="?page={{ p }}">{{ p }}</a>
+                          <a href="?page={{ p }}&sort={{ current_sort }}{% if query %}&q={{ query }}{% endif %}">{{ p }}</a>
                         </li>
                       {% endif %}
                     {% endif %}
                   {% endfor %}
                   {% if current_page.has_next %}
                     <li>
-                      <a class="nav-arrow" href="?page={{ current_page.next_page_number }}">&gt;</a>
+                      <a class="nav-arrow" href="?page={{ current_page.next_page_number }}&sort={{ current_sort }}{% if query %}&q={{ query }}{% endif %}">&gt;</a>
                     </li>
                   {% endif %}
                 </ul>

@@ -22,10 +22,18 @@ def product_detail(request, category_slug, product_slug):
     return render(request, 'detail/detail.html', {'product' : product, 'category' : category, 'cart_product_form' : cart_product_form})
 
 
+SORT_OPTIONS = {
+    'price_asc': 'price',
+    'price_desc': '-price',
+    'newest': '-date_create',
+}
+
 def product_list(request, category_slug=None):
+    sort_key = request.GET.get('sort', 'newest')
+    order_by = SORT_OPTIONS.get(sort_key, '-date_create')
     query = request.GET.get('q', '').strip()
     categories = set(Category.objects.filter(products__available=True))
-    products = Product.objects.filter(available=True).select_related('category')
+    products = Product.objects.filter(available=True).select_related('category').order_by(order_by)
 
     if query:
         products = products.filter(
@@ -45,7 +53,8 @@ def product_list(request, category_slug=None):
     return render(request, 'products/products.html', {'current_page' : current_page,
                                                       'categories' : categories,
                                                       'product_category' : product_category,
-                                                      'query': query})
+                                                      'query': query,
+                                                      'current_sort': sort_key})
 
 class ContactViewForm(LoginRequiredMixin, FormView):
     form_class = ContactForm
