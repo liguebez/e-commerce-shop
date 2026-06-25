@@ -8,7 +8,7 @@
 {% block content %}
   <section class="product-detail">
     <div class="detail-image">
-      <img src="{{ product.image.url }}" alt="{{ product.image.name }}" />
+      {% if product.image %}<img src="{{ product.image.url }}" alt="{{ product.image.name }}" />{% endif %}
     </div>
     <div class="detail-info">
       <div class="detail-text">

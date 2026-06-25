@@ -1,3 +1,48 @@
 from django.test import TestCase
+from django.urls import reverse
+from django.contrib.auth.models import User
+from main.models import Category, Product
+from wishlist.models import WishlistItem
 
-# Create your tests here.
+
+class WishlistRequiresLoginTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.cat = Category.objects.create(name="Shirts", slug="shirts")
+        cls.product = Product.objects.create(name="Tee", slug="tee", category=cls.cat, price=10)
+
+    def test_add_redirects_to_login(self):
+        response = self.client.post(reverse('wishlist:wishlist_add', args=[self.product.id]))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/users/login/', response.url)
+
+
+class WishlistAddTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.cat = Category.objects.create(name="Shirts", slug="shirts")
+        cls.product = Product.objects.create(name="Tee", slug="tee", category=cls.cat, price=10)
+        cls.user = User.objects.create_user(username="testuser", password="pass")
+
+    def setUp(self):
+        self.client.login(username="testuser", password="pass")
+
+    def test_add_creates_wishlist_item(self):
+        self.client.post(reverse('wishlist:wishlist_add', args=[self.product.id]))
+        self.assertTrue(WishlistItem.objects.filter(user=self.user, product=self.product).exists())
+
+
+class WishlistRemoveTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.cat = Category.objects.create(name="Shirts", slug="shirts")
+        cls.product = Product.objects.create(name="Tee", slug="tee", category=cls.cat, price=10)
+        cls.user = User.objects.create_user(username="testuser", password="pass")
+
+    def setUp(self):
+        self.client.login(username="testuser", password="pass")
+        WishlistItem.objects.create(user=self.user, product=self.product)
+
+    def test_remove_deletes_wishlist_item(self):
+        self.client.post(reverse('wishlist:wishlist_remove', args=[self.product.id]))
+        self.assertFalse(WishlistItem.objects.filter(user=self.user, product=self.product).exists())

@@ -48,7 +48,7 @@
                   {% if product.discount > 0 %}
                     <span class="discount-tag">{{ product.discount }}% off</span>
                   {% endif %}
-                  <img src="{{ product.image.url }}" class="product-thumb" alt="" />
+                  {% if product.image %}<img src="{{ product.image.url }}" class="product-thumb" alt="" />{% endif %}
                   <a class="card-btn" href="{{ product.get_absolute_url }}">view</a>
                 </div>
                 <div class="product-info">
