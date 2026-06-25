@@ -1,22 +1,32 @@
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse
+from urllib.parse import urlparse
 from .models import WishlistItem
 from main.models import Product
-# Create your views here.
 
-@login_required
+
+def _login_redirect(request):
+    referer = request.META.get('HTTP_REFERER', '/')
+    referer_path = urlparse(referer).path or '/'
+    return redirect(f"{reverse('users:login')}?next={referer_path}")
+
+
 @require_POST
 def wishlist_add(request, product_id):
+    if not request.user.is_authenticated:
+        return _login_redirect(request)
     product = get_object_or_404(Product, id=product_id)
     if not WishlistItem.objects.filter(user=request.user, product=product).exists():
         WishlistItem.objects.create(user=request.user, product=product)
-    
+
     return redirect('wishlist:wishlist_detail')
 
-@login_required
 @require_POST
 def wishlist_remove(request, product_id):
+    if not request.user.is_authenticated:
+        return _login_redirect(request)
     product = get_object_or_404(Product, id=product_id)
     WishlistItem.objects.filter(user=request.user, product=product).delete()
 
@@ -24,12 +34,8 @@ def wishlist_remove(request, product_id):
 
 @login_required
 def wishlist_detail(request):
+    items = WishlistItem.objects.filter(user=request.user).select_related('product')
 
-    items = (WishlistItem.objects.filter(user=request.user))
-    
-    wishlist = []
-    
-    for item in items:
-        wishlist.append(item.product)
+    wishlist = [item.product for item in items]
 
     return render(request, 'wishlist/detail.html', {'wishlist' : wishlist})

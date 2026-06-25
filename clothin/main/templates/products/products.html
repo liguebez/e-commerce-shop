@@ -45,7 +45,7 @@
           <h3>
             {% if query %}
               Results for "{{ query }}"
-              <span class="search-count">({{ products.paginator.count }} found)</span>
+              <span class="search-count">({{ current_page.paginator.count }} found)</span>
             {% elif product_category is None %}
               ALL PRODUCTS
             {% else %}

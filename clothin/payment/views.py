@@ -4,11 +4,13 @@ from decimal import Decimal
 from orders.models import Order, OrderItem
 from cart.models import CartItem
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
 import stripe
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 stripe.api_version = settings.STRIPE_API_VERSION
 
+@login_required
 def payment_process(request):
     order_id = request.session.get('order_id', None)
     order = get_object_or_404(Order, id=order_id)
@@ -28,10 +30,9 @@ def payment_process(request):
             'line_items': [],
         }
         for item in order.items.all():
-            discounted_price = item.product.get_price()
             session_data['line_items'].append({
                 'price_data': {
-                    'unit_amount': int(discounted_price*Decimal('100')),
+                    'unit_amount': int(item.price * Decimal('100')),
                     'currency' : 'usd',
                     'product_data': {
                         'name': item.product.name,

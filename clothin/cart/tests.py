@@ -12,7 +12,7 @@ class CartRequiresLoginTest(TestCase):
         cls.product = Product.objects.create(name="Tee", slug="tee", category=cls.cat, price=10, stock=5)
 
     def test_add_redirects_to_login(self):
-        response = self.client.get(reverse('cart:cart_add', args=[self.product.id]))
+        response = self.client.post(reverse('cart:cart_add', args=[self.product.id]), {'action': 'increment'})
         self.assertEqual(response.status_code, 302)
         self.assertIn('/users/login/', response.url)
 

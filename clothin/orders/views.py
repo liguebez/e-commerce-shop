@@ -8,6 +8,7 @@ from django.db import transaction
 from django.contrib import messages
 
 
+@login_required
 def order_create(request):
     cart = CartItem.objects.select_related('product').filter(user=request.user)
     if request.method == "POST":

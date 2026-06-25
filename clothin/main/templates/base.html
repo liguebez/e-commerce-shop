@@ -53,9 +53,10 @@
               <li><a class="nav-button-profile" href="{% url 'orders:order_list' %}">My Orders</a></li>
               <li><a class="nav-button-profile" href="{% url 'users:profile' %}"><img src="{% static 'img/profile.png' %}" alt="">{{ request.user.username }}</a></li>
               <li>
-                <a class="nav-button-profile" href="{% url 'users:logout' %}">
-                    Logout
-                </a>
+                <form id="logout-form" method="post" action="{% url 'users:logout' %}" style="display:none">
+                  {% csrf_token %}
+                </form>
+                <a class="nav-button-profile" href="#" onclick="document.getElementById('logout-form').submit(); return false;">Logout</a>
               </li>
               {% else %}
               <li>

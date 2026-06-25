@@ -10,6 +10,7 @@
         <h3>Login</h3>
         <form action="{% url 'users:login' %}" method="post">
             {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.GET.next }}">
             {{ form.as_p }}
             <a href="{% url "users:password_reset" %}">Forgot your password?</a>
             <button class="btn" type="submit">Login</button>

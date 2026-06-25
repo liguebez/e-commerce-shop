@@ -12,12 +12,12 @@ from django.db.models import Q
 
 
 def index(request):
-    products = Product.objects.all().select_related('category')
+    products = Product.objects.filter(available=True).select_related('category')
     return render(request, 'index/index.html', {'products' : products})
 
 def product_detail(request, category_slug, product_slug):
     category = get_object_or_404(Category, slug=category_slug)
-    product = get_object_or_404(Product, slug=product_slug)
+    product = get_object_or_404(Product, slug=product_slug, category=category)
     cart_product_form = CartUpdateForm()
     return render(request, 'detail/detail.html', {'product' : product, 'category' : category, 'cart_product_form' : cart_product_form})
 
@@ -32,7 +32,7 @@ def product_list(request, category_slug=None):
     sort_key = request.GET.get('sort', 'newest')
     order_by = SORT_OPTIONS.get(sort_key, '-date_create')
     query = request.GET.get('q', '').strip()
-    categories = set(Category.objects.filter(products__available=True))
+    categories = Category.objects.filter(products__available=True).distinct()
     products = Product.objects.filter(available=True).select_related('category').order_by(order_by)
 
     if query:
