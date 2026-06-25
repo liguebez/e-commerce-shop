@@ -19,6 +19,10 @@ from django.urls import path
 from django.urls import include
 from django.conf import settings
 from django.conf.urls.static import static
+from main.views import page_not_found, server_error
+
+handler404 = page_not_found
+handler500 = server_error
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -30,8 +34,9 @@ urlpatterns = [
     path('captcha/', include('captcha.urls')),
     path('orders/', include('orders.urls', namespace='orders')),
     path('payment/', include('payment.urls', namespace='payment')),
-    path('__debug__/', include('debug_toolbar.urls')),
 ]
 
 if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns += [path('__debug__/', include(debug_toolbar.urls))]
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
