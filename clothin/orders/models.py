@@ -18,6 +18,16 @@ class Order(models.Model):
     paid = models.BooleanField(default=False)
     stripe_id = models.CharField(max_length=250, blank=True)
 
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('processing', 'Processing'),
+        ('shipped', 'Shipped'),
+        ('delivered','Delivered'),
+        ('cancelled', 'Cancelled'),
+    ]
+        
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+
     class Meta:
         ordering = ['-created']
         indexes = [

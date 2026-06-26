@@ -836,13 +836,29 @@ footer .container {
   letter-spacing: 0.05em;
 }
 
-.status-paid {
-  background-color: black;
+.status-pending {
+  border: 1px solid #aaa;
+  color: #555;
+}
+
+.status-processing {
+  background-color: #1a73e8;
   color: white;
 }
 
-.status-unpaid {
-  border: 1px solid black;
+.status-shipped {
+  background-color: #7b1fa2;
+  color: white;
+}
+
+.status-delivered {
+  background-color: #2e7d32;
+  color: white;
+}
+
+.status-cancelled {
+  background-color: #c62828;
+  color: white;
 }
 
 .order-items {
