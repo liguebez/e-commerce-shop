@@ -5,10 +5,13 @@ from .forms import ContactForm
 from .models import Product, Category
 from cart.forms import CartAddProductForm, CartUpdateForm
 from django.core.paginator import Paginator
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import FormView
 from django.core.cache import cache
 from django.db.models import Q
+
+from django.core.mail import EmailMessage
+from django.conf import settings
+from django.contrib import messages
 
 
 def index(request):
@@ -56,14 +59,35 @@ def product_list(request, category_slug=None):
                                                       'query': query,
                                                       'current_sort': sort_key})
 
-class ContactViewForm(LoginRequiredMixin, FormView):
+class ContactViewForm(FormView):
     form_class = ContactForm
     template_name = 'contact/contact.html'
-    success_url = reverse_lazy('main:index')
+    success_url = reverse_lazy('main:contact')
 
     def form_valid(self, form):
-        print(form.cleaned_data)
+        cd = form.cleaned_data
+        try:
+            email = EmailMessage(
+                subject=f'Contact form: message from {cd["name"]}',
+                body=cd['content'],
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[settings.CONTACT_EMAIL],
+                reply_to=[cd['email']],
+            )
+            email.send()
+            messages.success(self.request, 'Your message has been sent. We will get back to you shortly.')
+        except Exception:
+            messages.error(self.request, 'Sorry, we could not send your message. Please try again later.')
         return super().form_valid(form)
+
+    def get_initial(self):
+
+        initial = super().get_initial()
+        if self.request.user.is_authenticated:
+            initial['email'] = self.request.user.email
+            initial['name'] = self.request.user.get_full_name() or self.request.user.username
+            
+        return initial
     
 
 def page_not_found(request, exception):
