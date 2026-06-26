@@ -49,7 +49,9 @@ INSTALLED_APPS = [
     'captcha',
     'orders',
     'payment',
+    'django.contrib.sitemaps',
     'debug_toolbar',
+    
 ]
 
 MIDDLEWARE = [

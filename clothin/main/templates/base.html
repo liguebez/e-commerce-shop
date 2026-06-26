@@ -10,6 +10,10 @@
     </title>
     <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}" />
     <link rel="stylesheet" href="{% static 'css/base.css' %}" />
+    <meta name="description" content="{% block meta_description %}Clothin — modern clothing store.{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}Clothin{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{% endblock %}">
   </head>
   <body>
     <header class="header">

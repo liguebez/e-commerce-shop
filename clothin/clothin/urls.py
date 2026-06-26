@@ -20,6 +20,10 @@ from django.urls import include
 from django.conf import settings
 from django.conf.urls.static import static
 from main.views import page_not_found, server_error
+from django.contrib.sitemaps.views import sitemap
+from main.sitemaps import ProductSitemap, StaticViewSitemap
+
+sitemaps = {'products': ProductSitemap, 'static': StaticViewSitemap}
 
 handler404 = page_not_found
 handler500 = server_error
@@ -34,6 +38,7 @@ urlpatterns = [
     path('captcha/', include('captcha.urls')),
     path('orders/', include('orders.urls', namespace='orders')),
     path('payment/', include('payment.urls', namespace='payment')),
+    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
 ]
 
 if settings.DEBUG:
