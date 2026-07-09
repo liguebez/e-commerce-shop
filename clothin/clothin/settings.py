@@ -158,10 +158,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-CART_SESSION_ID = 'cart'
-
-WISHLIST_SESSION_ID = 'wishlist'   
-
 LOGIN_URL = 'users:login'
 LOGIN_REDIRECT_URL = '/'
 

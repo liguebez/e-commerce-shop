@@ -95,10 +95,10 @@
         <div class="footer-info">
           <div class="footer-list">
             <ul>INFO
-              <li><a href="#!">HOME</a></li>
-              <li><a href="#!">SHOP</a></li>
+              <li><a href="{% url 'main:index' %}">HOME</a></li>
+              <li><a href="{% url 'main:product_list' %}">SHOP</a></li>
               <li><a href="#!">ABOUT</a></li>
-              <li><a href="#!">CONTACTS</a></li>
+              <li><a href="{% url 'main:contact' %}">CONTACTS</a></li>
             </ul>
           </div>
           <div class="footer-list">

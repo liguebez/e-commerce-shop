@@ -73,6 +73,15 @@
                 </div>
               </div>
             {% endfor %}
+            {% if not current_page.object_list %}
+                <div class="empty-state">
+                    {% if query %}
+                        <p>No products found for "{{ query }}".</p>
+                    {% else %}
+                        <p>No products available in this category.</p>
+                    {% endif %}
+                </div>
+            {% endif %}
           </div>
           {% if current_page.has_other_pages %}
             <nav class="nav-page">

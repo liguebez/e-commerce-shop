@@ -15,3 +15,4 @@ class OrderAdmin(admin.ModelAdmin):
     list_editable = ['status']
     list_filter = ['paid', 'status', 'created', 'updated']
     inlines = [OrderItemInline]
+    search_fields = ['id', 'email', 'stripe_id']

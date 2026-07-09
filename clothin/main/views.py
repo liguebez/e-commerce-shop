@@ -35,7 +35,7 @@ def product_list(request, category_slug=None):
     sort_key = request.GET.get('sort', 'newest')
     order_by = SORT_OPTIONS.get(sort_key, '-date_create')
     query = request.GET.get('q', '').strip()
-    categories = Category.objects.filter(products__available=True).distinct()
+    categories = Category.objects.all()
     products = Product.objects.filter(available=True).select_related('category').order_by(order_by)
 
     if query:

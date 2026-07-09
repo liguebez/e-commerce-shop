@@ -6,6 +6,8 @@ from cart.models import CartItem
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.contrib import messages
+from main.models import Product
+from django.core.paginator import Paginator
 
 
 @login_required
@@ -16,11 +18,12 @@ def order_create(request):
         if form.is_valid():
             with transaction.atomic():
                 for item in cart:
-                    if item.product.stock < item.quantity:
+                    product = Product.objects.select_for_update().get(id=item.product_id)
+                    if product.stock < item.quantity:
                         messages.error(
                             request,
-                            f'Sorry, only {item.product.stock} unit(s) of '
-                            f'"{item.product.name}" are available.'
+                            f'Sorry, only {product.stock} unit(s) of '
+                            f'"{product.name}" are available.'
                         )
                         return redirect('cart:cart_detail')
                 
@@ -43,5 +46,7 @@ def order_create(request):
 @login_required
 def order_list(request):
     orders = Order.objects.filter(user=request.user).prefetch_related('items__product')
-    return render(request, 'order/list.html', {'orders': orders})
+    paginator = Paginator(orders, 5)
+    page = paginator.get_page(request.GET.get('page'))
+    return render(request, 'order/list.html', {'orders': page})
 

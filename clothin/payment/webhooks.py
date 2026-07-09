@@ -46,11 +46,15 @@ def stripe_webhook(request):
             ).delete()
 
             for item in order.items.select_related('product'):
-                updated = (
-                    Product.objects.filter(id=item.product_id,
+                updated = Product.objects.filter(id=item.product_id,
                                            stock__gte=item.quantity).update(stock=F('stock') - item.quantity
-                                            )
-                )
+                                        )
+
+                if updated == 0:
+                    logging.getLogger(__name__).warning(
+                        f'Stock shortfall on order {order.id}: product {item.product_id} '
+                        f'had insufficient stock for quantity {item.quantity}'
+                    )
 
             try:
                 subject = f'Order #{order.id} confirmed'

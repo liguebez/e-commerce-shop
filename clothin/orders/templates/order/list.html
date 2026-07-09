@@ -35,6 +35,33 @@
       </div>
       {% endfor %}
     </div>
+    {% if orders.has_other_pages %}
+      <nav class="nav-page">
+        <ul class="page-list">
+          {% if orders.has_previous %}
+            <li>
+              <a class="nav-arrow" href="?page={{ orders.previous_page_number }}">&lt;</a>
+            </li>
+          {% endif %}
+          {% for p in orders.paginator.page_range %}
+            {% if orders.number == p %}
+              <li>{{ p }}</li>
+            {% else %}
+              {% if p >= orders.number|add:-2 and p <= orders.number|add:2 %}
+                <li>
+                  <a href="?page={{ p }}">{{ p }}</a>
+                </li>
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+          {% if orders.has_next %}
+            <li>
+              <a class="nav-arrow" href="?page={{ orders.next_page_number }}">&gt;</a>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+    {% endif %}
     {% else %}
     <div class="empty">
       <h2>No orders yet</h2>
