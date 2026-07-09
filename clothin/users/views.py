@@ -1,6 +1,7 @@
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from .forms import LoginUserForm, RegisterUserForm, ProfileUserForm, UserPasswordChangeForm
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordChangeView, PasswordChangeDoneView
@@ -22,6 +23,8 @@ def login_user(request):
                 if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
                     return redirect(next_url)
                 return redirect('main:index')
+            else:
+                messages.error(request, 'Invalid username or password.')
     else:
         form = LoginUserForm()
     return render(request, 'users/login.html', {'form' : form})

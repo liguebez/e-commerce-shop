@@ -8,6 +8,7 @@ from orders.models import Order
 from main.models import Product
 from django.db.models import F
 from orders.models import OrderItem
+from cart.models import CartItem
 
 @csrf_exempt
 def stripe_webhook(request):
@@ -32,10 +33,16 @@ def stripe_webhook(request):
                 order = Order.objects.get(id=session.client_reference_id)
             except Order.DoesNotExist:
                 return HttpResponse(400)
+            
             order.paid = True
             order.status = 'processing'
             order.stripe_id = session.payment_intent
             order.save()
+
+            CartItem.objects.filter(
+                user=order.user,
+                product_id__in=order.items.values_list('product_id', flat=True)
+            ).delete()
 
             for item in order.items.select_related('product'):
                 updated = (

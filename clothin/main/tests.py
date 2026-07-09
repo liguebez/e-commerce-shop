@@ -75,7 +75,7 @@ class ContactFormTest(TestCase):
                 'captcha_0': 'dummy',
                 'captcha_1': 'dummy',
             })
-        self.assertRedirects(response, reverse('main:index'))
+        self.assertRedirects(response, reverse('main:contact'))
 
     def test_missing_fields_show_errors(self):
         with patch('captcha.fields.CaptchaField.clean', return_value='passed'):

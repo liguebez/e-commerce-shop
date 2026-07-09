@@ -31,18 +31,14 @@ def order_create(request):
                                             product = item.product,
                                             price=discounted_price,
                                             quantity=item.quantity)
-                    
-                # for item in cart:
-                #     item.product.stock -= item.quantity
-                #     item.product.save(update_fields=['stock'])
-                cart.delete()
-                
+
             request.session['order_id'] = order.id
 
             return redirect(reverse('payment:payment_process'))
     else:
         form = OrderCreateForm(request=request)
-        return render(request, 'order/create.html', {'cart': cart, 'form': form})
+    
+    return render(request, 'order/create.html', {'cart': cart, 'form': form})
 
 @login_required
 def order_list(request):

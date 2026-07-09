@@ -6,8 +6,9 @@
     <section class="payment-cancelled">
         <div class="container">
             <div class="empty">
-                <h2>Your cart is empty</h2>
-                <p><a href="{% url 'main:product_list' %}" class="btn" style="display: inline-block;">Continue shopping</a></p>
+                <h2>Payment Cancelled</h2>
+                <p>Your payment was not completed. Your order has not been placed.</p>
+                <a href="{% url 'cart:cart_detail' %}" class="btn" style="display: inline-block;">Return to Cart</a>
         </div>
         </div>
     </section>
