@@ -3,6 +3,7 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from urllib.parse import urlparse
 from main.models import Product
 from .forms import CartAddProductForm, CartUpdateForm
@@ -15,6 +16,13 @@ def _login_redirect(request):
     referer = request.META.get('HTTP_REFERER', '/')
     referer_path = urlparse(referer).path or '/'
     return redirect(f"{reverse('users:login')}?next={referer_path}")
+
+
+def _safe_referer_redirect(request):
+    referer = request.META.get('HTTP_REFERER', '/')
+    if url_has_allowed_host_and_scheme(referer, allowed_hosts={request.get_host()}):
+        return redirect(referer)
+    return redirect('/')
 
 
 @require_POST
@@ -42,7 +50,7 @@ def cart_add(request, product_id):
                     return redirect('cart:cart_detail')
                 item.save()
 
-    return redirect(request.META.get('HTTP_REFERER', '/'))
+    return _safe_referer_redirect(request)
 
 @require_POST
 def cart_update(request, product_id):
@@ -69,7 +77,7 @@ def cart_remove(request, product_id):
     product = get_object_or_404(Product, id=product_id, available=True)
     CartItem.objects.filter(user=request.user, product=product).delete()
 
-    return redirect(request.META.get('HTTP_REFERER', '/'))
+    return _safe_referer_redirect(request)
 
 
 @login_required

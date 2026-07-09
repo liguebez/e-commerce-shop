@@ -74,8 +74,11 @@ class ContactViewForm(FormView):
                 to=[settings.CONTACT_EMAIL],
                 reply_to=[cd['email']],
             )
-            email.send()
-            messages.success(self.request, 'Your message has been sent. We will get back to you shortly.')
+            sent = email.send()
+            if sent:
+                messages.success(self.request, 'Your message has been sent. We will get back to you shortly.')
+            else:
+                messages.error(self.request, 'Sorry, we could not send your message. Please try again later.')
         except Exception:
             messages.error(self.request, 'Sorry, we could not send your message. Please try again later.')
         return super().form_valid(form)

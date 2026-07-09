@@ -1,3 +1,4 @@
+import logging
 import stripe
 from django.conf import settings
 from django.http import HttpResponse
@@ -51,15 +52,15 @@ def stripe_webhook(request):
                                             )
                 )
 
-                # if updated:
-                #     product = Product.objects.get(id=item.product_id)
-                #     if product.stock <= 0:
-                #         product.available = False
-                #         product.save(update_fields=['available'])
+            try:
+                subject = f'Order #{order.id} confirmed'
+                body = render_to_string('order/email_confirmation.txt', {'order': order})
+                send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [order.email])
+            except Exception:
+                logging.getLogger(__name__).error(
+                    f'Failed to send confirmation email for order {order.id}', exc_info=True
+                )
 
-            subject = f'Order #{order.id} confirmed'
-            body = render_to_string('order/email_confirmation.txt', {'order': order})
-            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [order.email])
 
     elif event.type == 'checkout.session.expired':
         session = event.data.object
