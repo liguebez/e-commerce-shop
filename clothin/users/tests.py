@@ -78,3 +78,34 @@ class PasswordChangeTest(TestCase):
             'new_password2': 'newstrongpass456',
         })
         self.assertRedirects(response, reverse('users:password_change_done'))
+
+class InvalidLoginTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create_user(username='testuser', email='test@example.com', password='pass')
+
+    def _assert_login_failed(self, response):
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Invalid username or password')
+        self.assertNotIn('_auth_user_id', self.client.session)
+
+    def test_invalid_username(self):
+        response = self.client.post(reverse('users:login'), {
+            'username': 'test2',
+            'password': 'pass',
+        })
+        self._assert_login_failed(response)
+
+    def test_invalid_password(self):
+        response = self.client.post(reverse('users:login'), {
+            'username': 'testuser',
+            'password': 'pass2',
+        })
+        self._assert_login_failed(response)
+
+    def test_invalid_email_wrong_password(self):
+        response = self.client.post(reverse('users:login'), {
+            'username': 'test@example.com',  # real email, wrong password
+            'password': 'wrongpass',
+        })
+        self._assert_login_failed(response)

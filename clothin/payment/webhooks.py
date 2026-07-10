@@ -35,6 +35,9 @@ def stripe_webhook(request):
             except Order.DoesNotExist:
                 return HttpResponse(400)
             
+            if order.paid:
+                return HttpResponse(status=200)
+
             order.paid = True
             order.status = 'processing'
             order.stripe_id = session.payment_intent

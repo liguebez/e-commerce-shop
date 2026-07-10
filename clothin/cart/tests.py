@@ -30,6 +30,18 @@ class CartAddTest(TestCase):
     def test_add_creates_cart_item(self):
         self.client.post(reverse('cart:cart_add', args=[self.product.id]), {'action': 'increment'})
         self.assertTrue(CartItem.objects.filter(user=self.user, product=self.product).exists())
+    
+    def test_quantity_gte_stock(self):
+        low_stock_product = Product.objects.create(
+            name="Rare", slug="rare", category=self.cat, price=10, stock=1
+        )
+        self.client.post(reverse('cart:cart_add', args=[low_stock_product.id]), {'action': 'increment'})
+        response = self.client.post(reverse('cart:cart_add', args=[low_stock_product.id]), {'action': 'increment'})
+        item = CartItem.objects.get(user=self.user, product=low_stock_product)
+        self.assertEqual(item.quantity, 1)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('cart:cart_detail'))
+        
 
 
 class CartUpdateTest(TestCase):
@@ -47,6 +59,13 @@ class CartUpdateTest(TestCase):
         self.client.post(reverse('cart:cart_update', args=[self.product.id]), {'quantity': 3})
         item = CartItem.objects.get(user=self.user, product=self.product)
         self.assertEqual(item.quantity, 3)
+    
+    def test_quantity_gte_stock(self):
+        response = self.client.post(reverse('cart:cart_update', args=[self.product.id]), {'quantity': 6})
+        item = CartItem.objects.get(user=self.user, product=self.product)
+        self.assertEqual(item.quantity, 1)  # unchanged — save() was skipped since 6 > stock (5)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('cart:cart_detail'))
 
 
 class CartRemoveTest(TestCase):

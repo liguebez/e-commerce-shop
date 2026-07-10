@@ -31,6 +31,24 @@ class OrderCreateTest(TestCase):
         self.assertEqual(Order.objects.filter(user=self.user).count(), 1)
         self.assertIn('order_id', self.client.session)
         self.assertRedirects(response, reverse('payment:payment_process'), fetch_redirect_response=False)
+    
+
+class OrderCreateInvalidPostTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create_user(username='testuser', password='pass')
+
+    def setUp(self):
+        self.client.login(username='testuser', password='pass')
+
+    def test_invalid_rerenders_form(self):
+        response = self.client.post(reverse('orders:order_create'), {
+            'first_name': 'Test',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['form'].errors)
+
 
 
 class OrderListTest(TestCase):
@@ -62,3 +80,4 @@ class OrderListTest(TestCase):
         orders = list(response.context['orders'])
         self.assertIn(self.order, orders)
         self.assertEqual(len(orders), 1)
+        
