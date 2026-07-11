@@ -78,3 +78,5 @@ def stripe_webhook(request):
                 order.delete()
 
     return HttpResponse(status=200)
+
+

@@ -3,6 +3,7 @@ from django import forms
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
+from captcha.fields import CaptchaField
 
 class LoginUserForm(forms.Form):
     username = forms.CharField(label="Username", widget=forms.TextInput(attrs={'class': 'form-input'}))
@@ -12,6 +13,7 @@ class RegisterUserForm(forms.ModelForm):
     username = forms.CharField(label="Username", widget=forms.TextInput())
     password = forms.CharField(label="Password", widget=forms.PasswordInput())
     password2 = forms.CharField(label="Repeat password", widget=forms.PasswordInput())
+    captcha = CaptchaField()
 
     class Meta:
         model = get_user_model()

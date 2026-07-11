@@ -1,3 +1,4 @@
+from unittest.mock import patch
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth import get_user_model
@@ -7,31 +8,51 @@ User = get_user_model()
 
 class RegisterTest(TestCase):
     def test_valid_form_creates_user(self):
-        response = self.client.post(reverse('users:register'), {
-            'username': 'newuser',
-            'first_name': 'New',
-            'last_name': 'User',
-            'email': 'new@example.com',
-            'password': 'securepass123',
-            'password2': 'securepass123',
-        })
+        with patch('captcha.fields.CaptchaField.clean', return_value='passed'):
+            response = self.client.post(reverse('users:register'), {
+                'username': 'newuser',
+                'first_name': 'New',
+                'last_name': 'User',
+                'email': 'new@example.com',
+                'password': 'securepass123',
+                'password2': 'securepass123',
+                'captcha_0': 'dummy',
+                'captcha_1': 'dummy',
+            })
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'users/register_done.html')
         self.assertTrue(User.objects.filter(username='newuser').exists())
 
     def test_weak_password_rejected(self):
-        response = self.client.post(reverse('users:register'), {
-            'username': 'weakpwuser',
-            'first_name': 'Weak',
-            'last_name': 'Password',
-            'email': 'weakpw@example.com',
-            'password': 'password',
-            'password2': 'password',
-        })
+        with patch('captcha.fields.CaptchaField.clean', return_value='passed'):
+            response = self.client.post(reverse('users:register'), {
+                'username': 'weakpwuser',
+                'first_name': 'Weak',
+                'last_name': 'Password',
+                'email': 'weakpw@example.com',
+                'password': 'password',
+                'password2': 'password',
+                'captcha_0': 'dummy',
+                'captcha_1': 'dummy',
+            })
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'users/register.html')
         self.assertFormError(response.context['form'], 'password2', 'This password is too common.')
         self.assertFalse(User.objects.filter(username='weakpwuser').exists())
+
+    def test_missing_captcha_rejected(self):
+        response = self.client.post(reverse('users:register'), {
+            'username': 'nocaptchauser',
+            'first_name': 'No',
+            'last_name': 'Captcha',
+            'email': 'nocaptcha@example.com',
+            'password': 'securepass123',
+            'password2': 'securepass123',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'users/register.html')
+        self.assertFormError(response.context['form'], 'captcha', 'This field is required.')
+        self.assertFalse(User.objects.filter(username='nocaptchauser').exists())
 
 
 class LoginUsernameTest(TestCase):

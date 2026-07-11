@@ -67,8 +67,9 @@ class ContactViewForm(FormView):
     def form_valid(self, form):
         cd = form.cleaned_data
         try:
+            safe_name = cd["name"].replace('\n', ' ').replace('\r', ' ').strip()
             email = EmailMessage(
-                subject=f'Contact form: message from {cd["name"]}',
+                subject=f'Contact form: message from {safe_name}',
                 body=cd['content'],
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 to=[settings.CONTACT_EMAIL],

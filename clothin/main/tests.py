@@ -1,4 +1,5 @@
 from unittest.mock import patch
+from django.core import mail
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
@@ -88,6 +89,22 @@ class ContactFormTest(TestCase):
         self.assertFormError(form, 'name', 'This field is required.')
         self.assertFormError(form, 'email', 'This field is required.')
         self.assertFormError(form, 'content', 'This field is required.')
+
+    def test_name_with_embedded_newline_does_not_break_subject(self):
+        with patch('captcha.fields.CaptchaField.clean', return_value='passed'):
+            response = self.client.post(reverse('main:contact'), {
+                'name': 'Evil\r\nBcc: attacker@evil.com',
+                'email': 'test@example.com',
+                'content': 'Hello there',
+                'captcha_0': 'dummy',
+                'captcha_1': 'dummy',
+            })
+        self.assertRedirects(response, reverse('main:contact'))
+        self.assertEqual(len(mail.outbox), 1)
+        subject = mail.outbox[0].subject
+        self.assertNotIn('\n', subject)
+        self.assertNotIn('\r', subject)
+        self.assertEqual(subject, 'Contact form: message from Evil  Bcc: attacker@evil.com')
 
 
 class SearchTest(TestCase):
