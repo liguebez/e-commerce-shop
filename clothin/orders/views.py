@@ -5,6 +5,7 @@ from .forms import OrderCreateForm
 from cart.models import CartItem
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
+from django.db.models import F
 from django.contrib import messages
 from main.models import Product
 from django.core.paginator import Paginator
@@ -26,7 +27,16 @@ def order_create(request):
                             f'"{product.name}" are available.'
                         )
                         return redirect('cart:cart_detail')
-                
+
+                # Reserve stock for every item only after confirming the whole
+                # cart is available, so a shortfall further down the cart
+                # can't leave earlier items decremented with no order to
+                # release them later.
+                for item in cart:
+                    Product.objects.filter(id=item.product_id).update(
+                        stock=F('stock') - item.quantity
+                    )
+
                 order = form.save()
                 for item in cart:
                     discounted_price = item.product.get_price()

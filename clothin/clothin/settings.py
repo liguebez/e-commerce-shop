@@ -203,6 +203,10 @@ STRIPE_API_VERSION = '2022-08-01'
 
 STRIPE_WEBHOOK_SECRET = os.environ['STRIPE_WEBHOOK_SECRET']
 
+# How long stock stays reserved for an unpaid order before
+# `release_expired_orders` restores it and deletes the order.
+ORDER_RESERVATION_MINUTES = int(os.environ.get('ORDER_RESERVATION_MINUTES', 30))
+
 CONTACT_EMAIL = os.environ.get('CONTACT_EMAIL', 'admin@localhost')
 
 AXES_FAILURE_LIMIT = 10

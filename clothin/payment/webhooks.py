@@ -52,17 +52,6 @@ def stripe_webhook(request):
                     product_id__in=order.items.values_list('product_id', flat=True)
                 ).delete()
 
-                for item in order.items.select_related('product'):
-                    updated = Product.objects.filter(id=item.product_id,
-                                            stock__gte=item.quantity).update(stock=F('stock') - item.quantity
-                                            )
-
-                    if updated == 0:
-                        logging.getLogger(__name__).warning(
-                            f'Stock shortfall on order {order.id}: product {item.product_id} '
-                            f'had insufficient stock for quantity {item.quantity}'
-                        )
-
             try:
                 subject = f'Order #{order.id} confirmed'
                 body = render_to_string('order/email_confirmation.txt', {'order': order})
@@ -75,12 +64,17 @@ def stripe_webhook(request):
 
     elif event.type == 'checkout.session.expired':
         session = event.data.object
-        try:
-            order = Order.objects.get(id=session.client_reference_id)
-        except Order.DoesNotExist:
-            return HttpResponse(status=200)
+        with transaction.atomic():
+            try:
+                order = Order.objects.select_for_update().get(id=session.client_reference_id)
+            except Order.DoesNotExist:
+                return HttpResponse(status=200)
 
-        if not order.paid:
-            order.delete()
+            if not order.paid:
+                for item in order.items.all():
+                    Product.objects.filter(id=item.product_id).update(
+                        stock=F('stock') + item.quantity
+                    )
+                order.delete()
 
     return HttpResponse(status=200)

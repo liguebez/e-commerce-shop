@@ -84,7 +84,10 @@ class WebhookValidEventTest(TestCase):
             )
         self.assertEqual(response.status_code, 400)
 
-    def test_duplicate_event_does_not_double_decrement_stock(self):
+    def test_duplicate_completed_event_does_not_touch_stock(self):
+        # Stock is now reserved at order-creation time (orders/views.py), not
+        # decremented again here, so the completed webhook must never change
+        # it -- duplicate delivery included.
         with patch('stripe.Webhook.construct_event', return_value=self._make_event()), \
              patch('django.core.mail.send_mail'):
             for _ in range(2):
@@ -96,7 +99,7 @@ class WebhookValidEventTest(TestCase):
                 )
                 self.assertEqual(response.status_code, 200)
         self.product.refresh_from_db()
-        self.assertEqual(self.product.stock, 4)  # 5 - 1, not 5 - 1 - 1
+        self.assertEqual(self.product.stock, 5)
 
 
 class PaymentProcessOwnershipTest(TestCase):
@@ -126,6 +129,9 @@ class PaymentProcessOwnershipTest(TestCase):
 class WebhookExpiredEventTest(TestCase):
     @classmethod
     def setUpTestData(cls):
+        cls.cat = Category.objects.create(name="Shirts", slug="shirts")
+        # Stock already reserved (decremented from 5 to 4) at order-creation time.
+        cls.product = Product.objects.create(name="Tee", slug="tee", category=cls.cat, price=10, stock=4)
         cls.user = User.objects.create_user(username="testuser", password="pass")
 
     def setUp(self):
@@ -133,6 +139,12 @@ class WebhookExpiredEventTest(TestCase):
             user=self.user,
             first_name="Test", last_name="User", email="test@example.com",
             address="123 St", postal_code="12345", city="City",
+        )
+        OrderItem.objects.create(
+            orders=self.order,
+            product=self.product,
+            price=self.product.get_price(),
+            quantity=1,
         )
 
     def _make_expired_event(self):
@@ -143,7 +155,7 @@ class WebhookExpiredEventTest(TestCase):
         mock_event.data.object = mock_session
         return mock_event
 
-    def test_expired_event_deletes_unpaid_order(self):
+    def test_expired_event_deletes_unpaid_order_and_restores_stock(self):
         with patch('stripe.Webhook.construct_event', return_value=self._make_expired_event()):
             response = self.client.post(
                 reverse('payment:payment_webhook'),
@@ -153,3 +165,5 @@ class WebhookExpiredEventTest(TestCase):
             )
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Order.objects.filter(id=self.order.id).exists())
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.stock, 5)
