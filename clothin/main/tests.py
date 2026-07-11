@@ -64,7 +64,7 @@ class ProductDetailTest(TestCase):
 class ContactFormTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='testuser', password='pass')
-        self.client.login(username='testuser', password='pass')
+        self.client.force_login(self.user)
 
     def test_valid_form_redirects(self):
         with patch('captcha.fields.CaptchaField.clean', return_value='passed'):

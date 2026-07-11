@@ -16,7 +16,7 @@ class OrderCreateTest(TestCase):
         cls.user = User.objects.create_user(username="testuser", password="pass")
 
     def setUp(self):
-        self.client.login(username="testuser", password="pass")
+        self.client.force_login(self.user)
         CartItem.objects.create(user=self.user, product=self.product, quantity=1)
 
     def test_creates_order_and_stores_session(self):
@@ -39,7 +39,7 @@ class OrderCreateInvalidPostTest(TestCase):
         cls.user = User.objects.create_user(username='testuser', password='pass')
 
     def setUp(self):
-        self.client.login(username='testuser', password='pass')
+        self.client.force_login(self.user)
 
     def test_invalid_rerenders_form(self):
         response = self.client.post(reverse('orders:order_create'), {
@@ -74,7 +74,7 @@ class OrderListTest(TestCase):
         self.assertEqual(response.status_code, 302)
 
     def test_returns_only_user_orders(self):
-        self.client.login(username="testuser", password="pass")
+        self.client.force_login(self.user)
         response = self.client.get(reverse('orders:order_list'))
         self.assertEqual(response.status_code, 200)
         orders = list(response.context['orders'])

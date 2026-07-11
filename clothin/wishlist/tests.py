@@ -25,7 +25,7 @@ class WishlistAddTest(TestCase):
         cls.user = User.objects.create_user(username="testuser", password="pass")
 
     def setUp(self):
-        self.client.login(username="testuser", password="pass")
+        self.client.force_login(self.user)
 
     def test_add_creates_wishlist_item(self):
         self.client.post(reverse('wishlist:wishlist_add', args=[self.product.id]))
@@ -40,7 +40,7 @@ class WishlistRemoveTest(TestCase):
         cls.user = User.objects.create_user(username="testuser", password="pass")
 
     def setUp(self):
-        self.client.login(username="testuser", password="pass")
+        self.client.force_login(self.user)
         WishlistItem.objects.create(user=self.user, product=self.product)
 
     def test_remove_deletes_wishlist_item(self):

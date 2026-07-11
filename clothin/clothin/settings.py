@@ -26,10 +26,21 @@ SECRET_KEY = os.environ['SECRET_KEY']
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
 INTERNAL_IPS = [
     '127.0.0.1',
 ]
+
+# SECURITY WARNING: these only take effect when DEBUG=False so local development
+# (plain HTTP on 127.0.0.1) keeps working.
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
 
 
 # Application definition
@@ -51,7 +62,7 @@ INSTALLED_APPS = [
     'payment',
     'django.contrib.sitemaps',
     'debug_toolbar',
-    
+    'axes',
 ]
 
 MIDDLEWARE = [
@@ -66,6 +77,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'axes.middleware.AxesMiddleware',
 ]
 
 ROOT_URLCONF = 'clothin.urls'
@@ -162,6 +174,7 @@ LOGIN_URL = 'users:login'
 LOGIN_REDIRECT_URL = '/'
 
 AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesStandaloneBackend',
     'social_core.backends.github.GithubOAuth2',
     "django.contrib.auth.backends.ModelBackend",
     "users.authentication.EmailAuthBackend",
@@ -188,3 +201,7 @@ STRIPE_API_VERSION = '2022-08-01'
 STRIPE_WEBHOOK_SECRET = os.environ['STRIPE_WEBHOOK_SECRET']
 
 CONTACT_EMAIL = os.environ.get('CONTACT_EMAIL', 'admin@localhost')
+
+AXES_FAILURE_LIMIT = 10
+AXES_COOLOFF_TIME = 1  # hours
+AXES_LOCKOUT_PARAMETERS = ['username', 'ip_address']

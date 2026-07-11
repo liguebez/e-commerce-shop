@@ -81,6 +81,30 @@ class WebhookValidEventTest(TestCase):
         self.assertEqual(self.product.stock, 4)  # 5 - 1, not 5 - 1 - 1
 
 
+class PaymentProcessOwnershipTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user_a = User.objects.create_user(username="usera", password="pass")
+        cls.user_b = User.objects.create_user(username="userb", password="pass")
+
+    def setUp(self):
+        self.order_b = Order.objects.create(
+            user=self.user_b,
+            first_name="User", last_name="B", email="userb@example.com",
+            address="456 St", postal_code="54321", city="City",
+        )
+
+    def test_cannot_view_another_users_order_via_stale_session(self):
+        self.client.force_login(self.user_a)
+        session = self.client.session
+        session['order_id'] = self.order_b.id
+        session.save()
+
+        response = self.client.get(reverse('payment:payment_process'))
+
+        self.assertEqual(response.status_code, 404)
+
+
 class WebhookExpiredEventTest(TestCase):
     @classmethod
     def setUpTestData(cls):

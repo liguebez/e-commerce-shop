@@ -25,7 +25,7 @@ class CartAddTest(TestCase):
         cls.user = User.objects.create_user(username="testuser", password="pass")
 
     def setUp(self):
-        self.client.login(username="testuser", password="pass")
+        self.client.force_login(self.user)
 
     def test_add_creates_cart_item(self):
         self.client.post(reverse('cart:cart_add', args=[self.product.id]), {'action': 'increment'})
@@ -52,7 +52,7 @@ class CartUpdateTest(TestCase):
         cls.user = User.objects.create_user(username="testuser", password="pass")
 
     def setUp(self):
-        self.client.login(username="testuser", password="pass")
+        self.client.force_login(self.user)
         CartItem.objects.create(user=self.user, product=self.product, quantity=1)
 
     def test_update_changes_quantity(self):
@@ -76,7 +76,7 @@ class CartRemoveTest(TestCase):
         cls.user = User.objects.create_user(username="testuser", password="pass")
 
     def setUp(self):
-        self.client.login(username="testuser", password="pass")
+        self.client.force_login(self.user)
         CartItem.objects.create(user=self.user, product=self.product, quantity=1)
 
     def test_remove_deletes_cart_item(self):

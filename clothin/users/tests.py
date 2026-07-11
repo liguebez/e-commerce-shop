@@ -52,7 +52,7 @@ class ProfileUpdateTest(TestCase):
         cls.user = User.objects.create_user(username='testuser', email='testuser@example.com', password='pass')
 
     def setUp(self):
-        self.client.login(username='testuser', password='pass')
+        self.client.force_login(self.user)
 
     def test_post_updates_name(self):
         self.client.post(reverse('users:profile'), {
@@ -69,7 +69,7 @@ class ProfileUpdateTest(TestCase):
 class PasswordChangeTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='testuser', password='oldpass123')
-        self.client.login(username='testuser', password='oldpass123')
+        self.client.force_login(self.user)
 
     def test_valid_password_change_redirects(self):
         response = self.client.post(reverse('users:password_change'), {

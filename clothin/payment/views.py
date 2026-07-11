@@ -13,7 +13,7 @@ stripe.api_version = settings.STRIPE_API_VERSION
 @login_required
 def payment_process(request):
     order_id = request.session.get('order_id', None)
-    order = get_object_or_404(Order, id=order_id)
+    order = get_object_or_404(Order, id=order_id, user=request.user)
 
     if request.method == "POST":
         success_url = request.build_absolute_uri(
@@ -46,8 +46,10 @@ def payment_process(request):
         return render(request, 'payment/process.html', {'order': order})
 
 def payment_completed(request):
+    request.session.pop('order_id', None)
     return render(request, 'payment/completed.html')
 
 
 def payment_cancelled(request):
+    request.session.pop('order_id', None)
     return render(request, 'payment/cancelled.html')
