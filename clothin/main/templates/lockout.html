@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load duration_extras %}
+{% block title %}Too Many Attempts{% endblock %}
+{% block content %}
+<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:60vh; text-align:center; gap:16px;">
+    <h1 style="font-size:4rem; font-weight:700; margin:0; line-height:1;">Locked Out</h1>
+    <h2 style="font-size:1.5rem; font-weight:500; margin:0;">Too Many Failed Login Attempts</h2>
+    <p id="cooloff-message" style="color:#666; max-width:400px; margin:0;">
+        {% if cooloff_timedelta %}
+            For security, this account/IP has been temporarily locked. Please try again in about {{ cooloff_timedelta|human_duration }}.
+        {% else %}
+            For security, this account/IP has been temporarily locked. Please try again later.
+        {% endif %}
+    </p>
+    <a href="{% url 'main:index' %}" class="btn" style="margin-top:8px; padding:12px 32px; text-decoration:none;">Back to Homepage</a>
+</div>
+
+{% if cooloff_timedelta %}
+<script>
+(function () {
+    var remaining = Math.round({{ cooloff_timedelta.total_seconds }});
+    var messageEl = document.getElementById('cooloff-message');
+
+    function formatDuration(totalSeconds) {
+        var hours = Math.floor(totalSeconds / 3600);
+        var minutes = Math.floor((totalSeconds % 3600) / 60);
+        var seconds = totalSeconds % 60;
+        var parts = [];
+        if (hours) parts.push(hours + ' hour' + (hours !== 1 ? 's' : ''));
+        if (minutes) parts.push(minutes + ' minute' + (minutes !== 1 ? 's' : ''));
+        if (!hours && !minutes) parts.push(seconds + ' second' + (seconds !== 1 ? 's' : ''));
+        return parts.join(' ');
+    }
+
+    var timer = setInterval(function () {
+        remaining -= 1;
+        if (remaining <= 0) {
+            clearInterval(timer);
+            messageEl.textContent = 'You can try logging in again now.';
+            return;
+        }
+        messageEl.textContent = 'For security, this account/IP has been temporarily locked. Please try again in about ' + formatDuration(remaining) + '.';
+    }, 1000);
+})();
+</script>
+{% endif %}
+{% endblock %}

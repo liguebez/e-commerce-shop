@@ -1,3 +1,4 @@
+from datetime import timedelta
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from .forms import LoginUserForm, RegisterUserForm, ProfileUserForm, UserPasswordChangeForm
@@ -8,6 +9,9 @@ from django.contrib.auth.views import PasswordChangeView, PasswordChangeDoneView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.decorators.http import require_POST
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.utils import timezone
+from axes.helpers import get_client_username, get_client_parameters, get_cool_off
+from axes.models import AccessAttempt
 
 # Create your views here.
 
@@ -28,6 +32,39 @@ def login_user(request):
     else:
         form = LoginUserForm()
     return render(request, 'users/login.html', {'form' : form})
+
+def axes_lockout_response(request, response=None, credentials=None):
+    """AXES_LOCKOUT_CALLABLE: renders lockout.html with the real remaining cool-off time,
+    read from AccessAttempt's stored expiration, so it doesn't reset to the full duration
+    on page reload."""
+    username = get_client_username(request, credentials)
+    cool_off = get_cool_off(request)
+    remaining = cool_off
+
+    if cool_off is not None:
+        filter_kwargs_list = get_client_parameters(
+            username,
+            getattr(request, 'axes_ip_address', None),
+            getattr(request, 'axes_user_agent', None),
+            request,
+            credentials,
+        )
+        latest_expiry = None
+        for filter_kwargs in filter_kwargs_list:
+            expiry = (
+                AccessAttempt.objects.filter(expiration__isnull=False, **filter_kwargs)
+                .order_by('-expiration__expires_at')
+                .values_list('expiration__expires_at', flat=True)
+                .first()
+            )
+            if expiry and (latest_expiry is None or expiry > latest_expiry):
+                latest_expiry = expiry
+
+        if latest_expiry is not None:
+            remaining = max(latest_expiry - timezone.now(), timedelta(seconds=0))
+
+    context = {'cooloff_timedelta': remaining}
+    return render(request, 'lockout.html', context, status=429)
 
 @require_POST
 def logout_user(request):

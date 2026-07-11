@@ -205,3 +205,6 @@ CONTACT_EMAIL = os.environ.get('CONTACT_EMAIL', 'admin@localhost')
 AXES_FAILURE_LIMIT = 10
 AXES_COOLOFF_TIME = 1  # hours
 AXES_LOCKOUT_PARAMETERS = ['username', 'ip_address']
+AXES_LOCKOUT_CALLABLE = 'users.views.axes_lockout_response'
+AXES_RESET_COOL_OFF_ON_FAILURE_DURING_LOCKOUT = False
+AXES_USE_ATTEMPT_EXPIRATION = True
