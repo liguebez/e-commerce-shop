@@ -10,6 +10,7 @@ from main.models import Product
 from django.db.models import F
 from orders.models import OrderItem
 from cart.models import CartItem
+from django.db import transaction
 
 @csrf_exempt
 def stripe_webhook(request):
@@ -30,34 +31,35 @@ def stripe_webhook(request):
     if event.type == 'checkout.session.completed':
         session = event.data.object
         if session.mode == 'payment' and session.payment_status == 'paid':
-            try:
-                order = Order.objects.get(id=session.client_reference_id)
-            except Order.DoesNotExist:
-                return HttpResponse(400)
-            
-            if order.paid:
-                return HttpResponse(status=200)
+            with transaction.atomic():
+                try:
+                    order = Order.objects.select_for_update().get(id=session.client_reference_id)
+                except Order.DoesNotExist:
+                    return HttpResponse(status=400)
+                
+                if order.paid:
+                    return HttpResponse(status=200)
 
-            order.paid = True
-            order.status = 'processing'
-            order.stripe_id = session.payment_intent
-            order.save()
+                order.paid = True
+                order.status = 'processing'
+                order.stripe_id = session.payment_intent
+                order.save()
 
-            CartItem.objects.filter(
-                user=order.user,
-                product_id__in=order.items.values_list('product_id', flat=True)
-            ).delete()
+                CartItem.objects.filter(
+                    user=order.user,
+                    product_id__in=order.items.values_list('product_id', flat=True)
+                ).delete()
 
-            for item in order.items.select_related('product'):
-                updated = Product.objects.filter(id=item.product_id,
-                                           stock__gte=item.quantity).update(stock=F('stock') - item.quantity
-                                        )
+                for item in order.items.select_related('product'):
+                    updated = Product.objects.filter(id=item.product_id,
+                                            stock__gte=item.quantity).update(stock=F('stock') - item.quantity
+                                            )
 
-                if updated == 0:
-                    logging.getLogger(__name__).warning(
-                        f'Stock shortfall on order {order.id}: product {item.product_id} '
-                        f'had insufficient stock for quantity {item.quantity}'
-                    )
+                    if updated == 0:
+                        logging.getLogger(__name__).warning(
+                            f'Stock shortfall on order {order.id}: product {item.product_id} '
+                            f'had insufficient stock for quantity {item.quantity}'
+                        )
 
             try:
                 subject = f'Order #{order.id} confirmed'

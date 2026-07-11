@@ -66,6 +66,24 @@ class WebhookValidEventTest(TestCase):
         self.order.refresh_from_db()
         self.assertTrue(self.order.paid)
 
+    def test_missing_order_returns_400(self):
+        mock_session = MagicMock()
+        mock_session.mode = 'payment'
+        mock_session.payment_status = 'paid'
+        mock_session.client_reference_id = 999999
+        mock_session.payment_intent = 'pi_test_missing'
+        mock_event = MagicMock()
+        mock_event.type = 'checkout.session.completed'
+        mock_event.data.object = mock_session
+        with patch('stripe.Webhook.construct_event', return_value=mock_event):
+            response = self.client.post(
+                reverse('payment:payment_webhook'),
+                data='{}',
+                content_type='application/json',
+                HTTP_STRIPE_SIGNATURE='sig',
+            )
+        self.assertEqual(response.status_code, 400)
+
     def test_duplicate_event_does_not_double_decrement_stock(self):
         with patch('stripe.Webhook.construct_event', return_value=self._make_event()), \
              patch('django.core.mail.send_mail'):
