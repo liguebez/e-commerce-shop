@@ -19,6 +19,20 @@ class RegisterTest(TestCase):
         self.assertTemplateUsed(response, 'users/register_done.html')
         self.assertTrue(User.objects.filter(username='newuser').exists())
 
+    def test_weak_password_rejected(self):
+        response = self.client.post(reverse('users:register'), {
+            'username': 'weakpwuser',
+            'first_name': 'Weak',
+            'last_name': 'Password',
+            'email': 'weakpw@example.com',
+            'password': 'password',
+            'password2': 'password',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'users/register.html')
+        self.assertFormError(response.context['form'], 'password2', 'This password is too common.')
+        self.assertFalse(User.objects.filter(username='weakpwuser').exists())
+
 
 class LoginUsernameTest(TestCase):
     @classmethod

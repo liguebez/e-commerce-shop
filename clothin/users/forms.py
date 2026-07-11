@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
 from django import forms
 from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 
 class LoginUserForm(forms.Form):
     username = forms.CharField(label="Username", widget=forms.TextInput(attrs={'class': 'form-input'}))
@@ -22,8 +24,12 @@ class RegisterUserForm(forms.ModelForm):
     
     def clean_password2(self):
         cd = self.cleaned_data
-        if cd['password'] != cd['password2']:
+        if cd.get('password') != cd.get('password2'):
             raise forms.ValidationError('Passwords do not match!')
+        try:
+            validate_password(cd['password2'])
+        except DjangoValidationError as e:
+            raise forms.ValidationError(e.messages)
         return cd['password2']
     
     def clean_email(self):

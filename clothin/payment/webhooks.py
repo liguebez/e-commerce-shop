@@ -15,7 +15,9 @@ from django.db import transaction
 @csrf_exempt
 def stripe_webhook(request):
     payload = request.body
-    sig_header = request.META['HTTP_STRIPE_SIGNATURE']
+    sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+    if not sig_header:
+        return HttpResponse(status=400)
     event = None
     try:
         event = stripe.Webhook.construct_event(
