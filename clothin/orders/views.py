@@ -13,7 +13,7 @@ from django.core.paginator import Paginator
 
 @login_required
 def order_create(request):
-    cart = CartItem.objects.select_related('product').filter(user=request.user)
+    cart = CartItem.objects.select_related('product').filter(user=request.user).order_by('product_id')
     if request.method == "POST":
         form = OrderCreateForm(request.POST, request=request)
         if form.is_valid():
