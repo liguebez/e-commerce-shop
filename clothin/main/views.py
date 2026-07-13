@@ -20,7 +20,7 @@ def index(request):
 
 def product_detail(request, category_slug, product_slug):
     category = get_object_or_404(Category, slug=category_slug)
-    product = get_object_or_404(Product, slug=product_slug, category=category)
+    product = get_object_or_404(Product, slug=product_slug, category=category, available=True)
     cart_product_form = CartUpdateForm()
     return render(request, 'detail/detail.html', {'product' : product, 'category' : category, 'cart_product_form' : cart_product_form})
 

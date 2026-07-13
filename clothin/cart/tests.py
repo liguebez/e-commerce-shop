@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
+from django.contrib.messages import get_messages
 from main.models import Category, Product
 from cart.models import CartItem
 
@@ -41,6 +42,15 @@ class CartAddTest(TestCase):
         self.assertEqual(item.quantity, 1)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse('cart:cart_detail'))
+    
+    def test_add_zero_stock_product(self):
+        zero_stock_product = Product.objects.create(name="Zero", slug='zero', category=self.cat,
+                                                        price=10, stock=0, available=True)
+        response = self.client.post(reverse('cart:cart_add', args=[zero_stock_product.id]), {'action': 'increment'})
+        self.assertFalse(CartItem.objects.filter(user=self.user, product=zero_stock_product).exists())
+        messages = list(get_messages(response.wsgi_request))
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(str(messages[0]), 'Only 0 units available.')
         
 
 

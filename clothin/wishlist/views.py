@@ -25,7 +25,7 @@ def _safe_referer_redirect(request):
 def wishlist_add(request, product_id):
     if not request.user.is_authenticated:
         return _login_redirect(request)
-    product = get_object_or_404(Product, id=product_id)
+    product = get_object_or_404(Product, id=product_id, available=True)
     if not WishlistItem.objects.filter(user=request.user, product=product).exists():
         WishlistItem.objects.create(user=request.user, product=product)
 

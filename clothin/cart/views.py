@@ -44,11 +44,19 @@ def cart_add(request, product_id):
 
             if item.quantity <= 0:
                 item.delete()
-            else:
-                if item.quantity > product.stock:
-                    messages.error(request, f'Only {product.stock} units available.')
-                    return redirect('cart:cart_detail')
-                item.save()
+                return _safe_referer_redirect(request)
+
+            if item.quantity > product.stock:
+                messages.error(request, f'Only {product.stock} units available.')
+                return redirect('cart:cart_detail')
+            item.save()
+        return _safe_referer_redirect(request)
+
+    if item.quantity > product.stock:
+        item.delete()
+        messages.error(request, f'Only {product.stock} units available.')
+        return redirect('cart:cart_detail')
+    item.save()
 
     return _safe_referer_redirect(request)
 

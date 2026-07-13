@@ -17,6 +17,9 @@ def order_create(request):
     if request.method == "POST":
         form = OrderCreateForm(request.POST, request=request)
         if form.is_valid():
+            if not cart.exists():
+                messages.error(request, 'Your cart is empty.')
+                return redirect('cart:cart_detail')
             with transaction.atomic():
                 for item in cart:
                     product = Product.objects.select_for_update().get(id=item.product_id)
@@ -44,6 +47,7 @@ def order_create(request):
                                             product = item.product,
                                             price=discounted_price,
                                             quantity=item.quantity)
+                cart.delete()
 
             request.session['order_id'] = order.id
 

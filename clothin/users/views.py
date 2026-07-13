@@ -1,4 +1,5 @@
 from datetime import timedelta
+from django.db import IntegrityError, transaction
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from .forms import LoginUserForm, RegisterUserForm, ProfileUserForm, UserPasswordChangeForm
@@ -77,8 +78,13 @@ def register_user(request):
         if form.is_valid():
             user = form.save(commit=False)
             user.set_password(form.cleaned_data['password'])
-            user.save()
-            return render(request, 'users/register_done.html')
+            try:
+                with transaction.atomic():
+                    user.save()
+            except IntegrityError:
+                form.add_error('email', 'This email already exists')
+            else:
+                return render(request, 'users/register_done.html')
     else:
         form = RegisterUserForm()
 

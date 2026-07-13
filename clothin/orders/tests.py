@@ -81,6 +81,39 @@ class OrderCreateTest(TestCase):
         self.assertEqual(Order.objects.filter(user=other).count(), 0)
         self.product.refresh_from_db()
         self.assertEqual(self.product.stock, 0)
+    
+    def test_creates_order_deletes_cart(self):
+        other_product = Product.objects.create(name="Cap", slug="cap", category=self.cat, price=15, stock=5)
+        CartItem.objects.create(user=self.user, product=other_product, quantity=1)
+
+        self.client.post(reverse('orders:order_create'), {
+            'first_name': 'Test',
+            'last_name': 'User',
+            'email': 'test@example.com',
+            'address': '123 Main St',
+            'postal_code': '12345',
+            'city': 'Testville',
+        })
+
+        self.assertEqual(Order.objects.filter(user=self.user).count(), 1)
+        self.assertFalse(CartItem.objects.filter(user=self.user).exists())
+
+    def test_resubmitting_with_empty_cart_does_not_create_order(self):
+        post_data = {
+            'first_name': 'Test',
+            'last_name': 'User',
+            'email': 'test@example.com',
+            'address': '123 Main St',
+            'postal_code': '12345',
+            'city': 'Testville',
+        }
+        self.client.post(reverse('orders:order_create'), post_data)
+        self.assertEqual(Order.objects.filter(user=self.user).count(), 1)
+
+        response = self.client.post(reverse('orders:order_create'), post_data)
+        self.assertEqual(Order.objects.filter(user=self.user).count(), 1)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('cart:cart_detail'))
 
 
 class OrderCreateInvalidPostTest(TestCase):

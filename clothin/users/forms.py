@@ -36,7 +36,7 @@ class RegisterUserForm(forms.ModelForm):
     
     def clean_email(self):
         email = self.cleaned_data['email']
-        if get_user_model().objects.filter(email=email).exists():
+        if get_user_model().objects.filter(email__iexact=email).exists():
             raise forms.ValidationError('This email already exists')
         return email
     

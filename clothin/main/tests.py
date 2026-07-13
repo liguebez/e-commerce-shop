@@ -52,6 +52,8 @@ class ProductDetailTest(TestCase):
     def setUpTestData(cls):
         cls.cat = Category.objects.create(name="Shirts", slug="shirts")
         cls.product = Product.objects.create(name="Blue shirt", slug='blue-shirt', category=cls.cat, price=20)
+        cls.unavailable_product = Product.objects.create(name="unavailable product", slug='unavailable-product',
+                                                         category=cls.cat, price=20, available=False)
 
     def test_return_200_with_correct_product(self):
         path = reverse('main:product_detail', args=['shirts', 'blue-shirt'])
@@ -60,6 +62,12 @@ class ProductDetailTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(self.product, response.context['product'])
         self.assertEqual(self.cat, response.context['category'])
+    
+    def test_get_unavailable_product_return_404(self):
+        path = reverse('main:product_detail', args=['shirts', 'unavailable-product'])
+        response = self.client.get(path)
+
+        self.assertEqual(response.status_code, 404)
 
 
 class ContactFormTest(TestCase):
