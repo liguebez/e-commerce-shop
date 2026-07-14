@@ -22,6 +22,7 @@ from django.conf.urls.static import static
 from main.views import page_not_found, server_error
 from django.contrib.sitemaps.views import sitemap
 from main.sitemaps import ProductSitemap, StaticViewSitemap
+from django.views.decorators.cache import cache_page
 
 sitemaps = {'products': ProductSitemap, 'static': StaticViewSitemap}
 
@@ -38,7 +39,7 @@ urlpatterns = [
     path('captcha/', include('captcha.urls')),
     path('orders/', include('orders.urls', namespace='orders')),
     path('payment/', include('payment.urls', namespace='payment')),
-    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
+    path('sitemap.xml', cache_page(86400)(sitemap), {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
 ]
 
 if settings.DEBUG:

@@ -5,6 +5,9 @@ from django.contrib.messages import get_messages
 from main.models import Category, Product
 from cart.models import CartItem
 
+from django.core.cache import cache
+from django.test import override_settings
+
 
 class CartRequiresLoginTest(TestCase):
     @classmethod
@@ -92,3 +95,29 @@ class CartRemoveTest(TestCase):
     def test_remove_deletes_cart_item(self):
         self.client.post(reverse('cart:cart_remove', args=[self.product.id]))
         self.assertFalse(CartItem.objects.filter(user=self.user, product=self.product).exists())
+
+@override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'}})
+class CartCacheInvalidationTest(TestCase):
+    
+    @classmethod
+    def setUpTestData(cls):
+        cls.cat = Category.objects.create(name="Shirts", slug="shirts")
+        cls.product = Product.objects.create(name="Tee", slug="tee", category=cls.cat, price=10, stock=5)
+        cls.user = User.objects.create_user(username="testuser", password="pass")
+
+    def setUp(self):
+        cache.clear()
+        self.client.force_login(self.user)
+        CartItem.objects.create(user=self.user, product=self.product, quantity=1)
+    
+    def test_add_cartitem_invalidates_cart_count_cache(self):
+        cache.set(f'cart:v1:totals:user:{self.user.id}', ['stale'], 300)
+        self.client.post(reverse('cart:cart_add', args=[self.product.id]), {'action': 'increment'})
+        self.assertIsNone(cache.get(f'cart:v1:totals:user:{self.user.id}'))
+
+    def test_remove_cartitem_invalidates_cart_count_cache(self):
+        cache.set(f'cart:v1:totals:user:{self.user.id}', ['stale'], 300)
+        self.client.post(reverse('cart:cart_remove', args=[self.product.id]))
+        self.assertIsNone(cache.get(f'cart:v1:totals:user:{self.user.id}'))
+        
+

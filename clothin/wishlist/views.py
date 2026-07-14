@@ -6,6 +6,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from urllib.parse import urlparse
 from .models import WishlistItem
 from main.models import Product
+from django.core.cache import cache
 
 
 def _login_redirect(request):
@@ -28,6 +29,7 @@ def wishlist_add(request, product_id):
     product = get_object_or_404(Product, id=product_id, available=True)
     if not WishlistItem.objects.filter(user=request.user, product=product).exists():
         WishlistItem.objects.create(user=request.user, product=product)
+        cache.delete(f'wishlist:v1:count:user:{request.user.id}')
 
     return _safe_referer_redirect(request)
 
@@ -37,6 +39,7 @@ def wishlist_remove(request, product_id):
         return _login_redirect(request)
     product = get_object_or_404(Product, id=product_id)
     WishlistItem.objects.filter(user=request.user, product=product).delete()
+    cache.delete(f'wishlist:v1:count:user:{request.user.id}')
 
     return _safe_referer_redirect(request)
 

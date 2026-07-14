@@ -9,6 +9,7 @@ from django.db.models import F
 from django.contrib import messages
 from main.models import Product
 from django.core.paginator import Paginator
+from django.core.cache import cache
 
 
 @login_required
@@ -48,6 +49,7 @@ def order_create(request):
                                             price=discounted_price,
                                             quantity=item.quantity)
                 cart.delete()
+                cache.delete(f'cart:v1:totals:user:{request.user.id}')
 
             request.session['order_id'] = order.id
 

@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 import os
+import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -121,13 +122,23 @@ DATABASES = {
     }
 }
 
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379/1')
+
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.dummy.DummyCache",
-        #"BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379",
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": REDIS_URL,
+        "KEY_PREFIX": "clothin",
+        "TIMEOUT": 300,
     }
 }
+
+# `manage.py test` always forces DummyCache. Django's TestCase rolls back each
+# test's transaction, which does not invalidate a real/LocMem cache (rollback
+# never fires post_delete), and several apps' fixtures reuse the same slugs
+# across test classes — a shared cache would leak stale objects between tests.
+if 'test' in sys.argv:
+    CACHES['default'] = {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

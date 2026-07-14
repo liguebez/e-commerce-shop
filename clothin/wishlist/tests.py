@@ -3,6 +3,8 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 from main.models import Category, Product
 from wishlist.models import WishlistItem
+from django.core.cache import cache
+from django.test import override_settings
 
 
 class WishlistRequiresLoginTest(TestCase):
@@ -56,3 +58,30 @@ class WishlistRemoveTest(TestCase):
     def test_remove_deletes_wishlist_item(self):
         self.client.post(reverse('wishlist:wishlist_remove', args=[self.product.id]))
         self.assertFalse(WishlistItem.objects.filter(user=self.user, product=self.product).exists())
+
+
+@override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'}})
+class WishlistCacheInvalidateTest(TestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.cat = Category.objects.create(name="Shirts", slug="shirts")
+        cls.product = Product.objects.create(name="Tee", slug="tee", category=cls.cat, price=10)
+        cls.user = User.objects.create_user(username="testuser", password="pass")
+
+    def setUp(self):
+        self.client.force_login(self.user)
+        cache.clear()
+
+    def test_adding_wishlist_item_invalidates_wishlist_count(self):
+        cache.set(f'wishlist:v1:count:user:{self.user.id}', ['stale'], 300)
+        self.client.post(reverse('wishlist:wishlist_add', args=[self.product.id]))
+        self.assertTrue(WishlistItem.objects.filter(user=self.user, product=self.product).exists())
+        self.assertIsNone(cache.get(f'wishlist:v1:count:user:{self.user.id}'))
+
+    def test_remove_wishlist_item_invalidates_wishlist_count(self):
+        WishlistItem.objects.create(user=self.user, product=self.product)
+        cache.set(f'wishlist:v1:count:user:{self.user.id}', ['stale'], 300)
+        self.client.post(reverse('wishlist:wishlist_remove', args=[self.product.id]))
+        self.assertFalse(WishlistItem.objects.filter(user=self.user, product=self.product).exists())
+        self.assertIsNone(cache.get(f'wishlist:v1:count:user:{self.user.id}'))

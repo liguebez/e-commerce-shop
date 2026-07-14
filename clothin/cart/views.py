@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.core.cache import cache
 from urllib.parse import urlparse
 from main.models import Product
 from .forms import CartAddProductForm, CartUpdateForm
@@ -44,16 +45,19 @@ def cart_add(request, product_id):
 
             if item.quantity <= 0:
                 item.delete()
+                cache.delete(f'cart:v1:totals:user:{request.user.id}')
                 return _safe_referer_redirect(request)
 
             if item.quantity > product.stock:
                 messages.error(request, f'Only {product.stock} units available.')
                 return redirect('cart:cart_detail')
             item.save()
+            cache.delete(f'cart:v1:totals:user:{request.user.id}')
         return _safe_referer_redirect(request)
 
     if item.quantity > product.stock:
         item.delete()
+        cache.delete(f'cart:v1:totals:user:{request.user.id}')
         messages.error(request, f'Only {product.stock} units available.')
         return redirect('cart:cart_detail')
     item.save()
@@ -75,6 +79,7 @@ def cart_update(request, product_id):
             messages.error(request, f'Only {product.stock} units available.')
             return redirect('cart:cart_detail')
         item.save()
+        cache.delete(f'cart:v1:totals:user:{request.user.id}')
 
     return redirect('cart:cart_detail')
 
@@ -84,6 +89,8 @@ def cart_remove(request, product_id):
         return _login_redirect(request)
     product = get_object_or_404(Product, id=product_id, available=True)
     CartItem.objects.filter(user=request.user, product=product).delete()
+    cache.delete(f'cart:v1:totals:user:{request.user.id}')
+
 
     return _safe_referer_redirect(request)
 

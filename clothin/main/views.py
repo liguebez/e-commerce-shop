@@ -15,7 +15,10 @@ from django.contrib import messages
 
 
 def index(request):
-    products = Product.objects.filter(available=True).select_related('category')
+    products = cache.get('main:v1:homepage_products')
+    if products is None:
+        products = list(Product.objects.filter(available=True).select_related('category'))
+        cache.set('main:v1:homepage_products', products, 300)
     return render(request, 'index/index.html', {'products' : products})
 
 def product_detail(request, category_slug, product_slug):
@@ -35,7 +38,10 @@ def product_list(request, category_slug=None):
     sort_key = request.GET.get('sort', 'newest')
     order_by = SORT_OPTIONS.get(sort_key, '-date_create')
     query = request.GET.get('q', '').strip()
-    categories = Category.objects.all()
+    categories = cache.get('main:v1:categories:all')
+    if categories is None:
+        categories = list(Category.objects.all())
+        cache.set('main:v1:categories:all', categories, 21600)
     products = Product.objects.filter(available=True).select_related('category').order_by(order_by)
 
     if query:

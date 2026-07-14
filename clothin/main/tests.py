@@ -4,6 +4,8 @@ from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
 from .models import Category, Product
+from django.core.cache import cache
+from django.test import override_settings
 
 
 
@@ -128,3 +130,24 @@ class SearchTest(TestCase):
         results = response.context['current_page'].object_list
         self.assertIn(self.match, results)
         self.assertNotIn(self.no_match, results)
+
+
+@override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'}})
+class CacheInvalidationTest(TestCase):
+    def setUp(self):
+        cache.clear()
+
+    def test_category_save_invalidates_categories_cache(self):
+        cat = Category.objects.create(name="Hats", slug="hats")
+        cache.set('main:v1:categories:all', ['stale'], 300)
+        cat.save()
+        self.assertIsNone(cache.get('main:v1:categories:all'))
+
+    def test_product_save_invalidates_homepage_cache(self):
+        cat = Category.objects.create(name="Hats", slug="hats")
+        product = Product.objects.create(name="Cap", slug="cap", category=cat, price=10)
+        cache.set('main:v1:homepage_products', ['stale'], 300)
+        product.save()
+        self.assertIsNone(cache.get('main:v1:homepage_products'))
+
+        
