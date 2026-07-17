@@ -2,6 +2,12 @@
 
 A full-featured clothing e-commerce web application built with Django 5.2, PostgreSQL, and Stripe Checkout.
 
+## Live Demo
+
+**[https://3-34-160-167.sslip.io/](https://3-34-160-167.sslip.io/)**
+
+Deployed on a Dockerized stack running on AWS EC2. Stripe is in **test mode** — use card `4242 4242 4242 4242`, any future expiry date, any CVC, and any postal code to complete a checkout without a real charge.
+
 ## Features
 
 - **Product catalogue** — browseable by category, paginated product list, full-text search (name + description), and sort by price or newest
@@ -193,3 +199,23 @@ The app supports three login methods, tried in order:
 ## Admin
 
 The Django admin is available at `/admin/`. Log in with the superuser you created during setup to manage products, categories, orders, and users.
+
+## Deployment
+
+The [live demo](#live-demo) runs as a 6-service Docker Compose stack on an AWS EC2 instance:
+
+| Service | Role |
+|---|---|
+| `web` | Django app served by gunicorn, non-root, multi-stage build |
+| `db` | PostgreSQL 16, internal-only (no host port) |
+| `redis` | Cache backend for cart totals, wishlist counts, category list, homepage products |
+| `nginx` | Terminates TLS, serves `/media/` directly, reverse-proxies everything else to `web` |
+| `certbot` | Issues and auto-renews the Let's Encrypt certificate |
+| `scheduler` | Runs `release_expired_orders` on a loop, restoring reserved stock from abandoned checkouts (replaces a cron job) |
+
+Notable production concerns handled in the deployment:
+
+- **HTTPS everywhere**, via Let's Encrypt, with `SECURE_PROXY_SSL_HEADER` configured so Django correctly recognizes requests proxied over HTTP from nginx (avoids an infinite redirect loop)
+- **Oversell-safe checkout** — stock is reserved at order creation (not at payment) inside a `select_for_update()` transaction, closing the race window between two customers buying the last unit
+- **Non-root containers**, a multi-stage Docker build (build tooling never ships in the runtime image), and health-checked services with dependency ordering
+- **Login rate limiting** via `django-axes` (lockout after repeated failed attempts) and a case-insensitive unique constraint on email to prevent duplicate-account races
