@@ -66,6 +66,13 @@ services:
     depends_on:
       web:
         condition: service_healthy
+    # Inherited from the shared Dockerfile's HEALTHCHECK, which curls
+    # localhost:8000 -- but this service runs entrypoint.scheduler.sh, not
+    # gunicorn, so nothing ever listens on 8000 here. Without disabling it,
+    # this container is permanently misreported "unhealthy" even though the
+    # release_expired_orders loop is running fine.
+    healthcheck:
+      disable: true
 
   nginx:
     image: nginx:1.27-alpine
