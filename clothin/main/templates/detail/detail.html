@@ -29,10 +29,17 @@
           <span class="category-txt"><a href="#!">{{ product.category.name }}</a></span>
         </h3>
         <p>{{ product.description }}</p>
-        <form action="{% url 'wishlist:wishlist_add' product.id %}" method="post">
-          {% csrf_token %}
-          <button type="submit" class="btn like">ADD TO WISHLIST</button>
-        </form>
+        {% if product.id in wishlist_product_ids %}
+          <form action="{% url 'wishlist:wishlist_remove' product.id %}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn remove">REMOVE</button>
+          </form>
+        {% else %}
+          <form action="{% url 'wishlist:wishlist_add' product.id %}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn like">ADD TO WISHLIST</button>
+          </form>
+        {% endif %}
         <form action="{% url "cart:cart_update" product.id %}" method="post">
           {% csrf_token %}
           {% if not product.stock %}

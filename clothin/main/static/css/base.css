@@ -511,6 +511,17 @@ footer .container {
   background-color: rgb(207, 137, 149)
 }
 
+.remove {
+  background-color: transparent;
+  border: 1px solid rgb(228, 173, 182);
+  color: rgb(228, 173, 182);
+}
+
+.remove:hover {
+  background-color: rgb(228, 173, 182);
+  color: #fff;
+}
+
 /* Shop page */
 
 .products {

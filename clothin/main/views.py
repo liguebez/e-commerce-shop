@@ -3,6 +3,9 @@ from django.urls import reverse_lazy
 
 from .forms import ContactForm
 from .models import Product, Category
+
+from wishlist.models import WishlistItem
+
 from cart.forms import CartAddProductForm, CartUpdateForm
 from django.core.paginator import Paginator
 from django.views.generic.edit import FormView
@@ -25,7 +28,12 @@ def product_detail(request, category_slug, product_slug):
     category = get_object_or_404(Category, slug=category_slug)
     product = get_object_or_404(Product, slug=product_slug, category=category, available=True)
     cart_product_form = CartUpdateForm()
-    return render(request, 'detail/detail.html', {'product' : product, 'category' : category, 'cart_product_form' : cart_product_form})
+    wishlist_product_ids = set()
+    if request.user.is_authenticated:
+        wishlist_product_ids = set(
+            WishlistItem.objects.filter(user=request.user).values_list('product_id', flat=True)
+        )
+    return render(request, 'detail/detail.html', {'product' : product, 'category' : category, 'cart_product_form' : cart_product_form, 'wishlist_product_ids' : wishlist_product_ids})
 
 
 SORT_OPTIONS = {
